@@ -10,7 +10,4 @@ export const updateCustomerRequirementApi = (id, payload) => api.put(`/customers
 export const addActivityApi = (id, payload) => api.post(`/customers/${id}/activities`, payload)
 export const addViewingApi = (id, payload) => api.post(`/customers/${id}/viewings`, payload)
 export const togglePriorityApi = (id) => api.put(`/customers/${id}/toggle-priority`)
-export async function closeDealApi(customerId, payload) {
-  const { data } = await api.post(`/customers/${customerId}/close-deal`, payload)
-  return data
-}
+export const closeDealApi = (id, payload) => api.post(`/customers/${id}/close-deal`, payload)
