@@ -383,16 +383,23 @@
 </template>
 
 <script setup>
+import dayjs from 'dayjs'
 import draggable from 'vuedraggable'
-import { onMounted, reactive, ref } from 'vue'
+import {computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '../../layouts/MainLayout.vue'
 import AssignSalesModal from '../../components/customers/AssignSalesModal.vue'
 import QuickNoteModal from '../../components/customers/QuickNoteModal.vue'
-import { getCustomersApi, updateCustomerStatusApi, togglePriorityApi } from '../../api/customers'
+import {
+  getCustomersApi,
+  updateCustomerStatusApi,
+  togglePriorityApi,
+  closeDealApi,
+} from '@/api/customers'
 import { getLeadSourcesApi } from '../../api/leadSources'
 import { getUsersApi } from '../../api/users'
 import { useAuthStore } from '../../stores/auth'
+import { message } from 'ant-design-vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -502,6 +509,46 @@ const board = reactive({
   deposit: [],
   contracted: [],
   lost: [],
+})
+const dealModalVisible = ref(false)
+const closingDealLoading = ref(false)
+
+const dealForm = reactive({
+  building_name: '',
+  unit_name: '',
+  signed_at: '',
+  vat_rate: 10,
+  rental_fee_ex_vat: null,
+  rental_fee_inc_vat: null,
+  revenue_rate: null,
+  revenue_amount: null,
+  deal_owner_sale_id: null,
+  note: '',
+})
+
+const vatOptions = [
+  { label: '0%', value: 0 },
+  { label: '8%', value: 8 },
+  { label: '10%', value: 10 },
+]
+
+const isAdmin = computed(() => authStore.user?.role === 'admin')
+
+const dealOwnerOptions = computed(() => {
+  const customer = pendingStageChange.value?.customer
+  const assignedUsers = customer?.assigned_users || customer?.assignedUsers || []
+
+  return assignedUsers.map((u) => ({
+    label: `${u.name}${u.pivot?.is_primary || u.is_primary ? ' (chính)' : ''}`,
+    value: u.id,
+  }))
+})
+
+const revenueReferencePreview = computed(() => {
+  const exVat = Number(dealForm.rental_fee_ex_vat || 0)
+  const rate = Number(dealForm.revenue_rate || 0)
+  if (!exVat || !rate) return 0
+  return exVat * rate / 100
 })
 
 const clearBoard = () => {
@@ -772,6 +819,143 @@ const warningText = (item) => {
 onMounted(async () => {
   await Promise.all([fetchCustomers(), fetchLeadSources(), ...(auth.isAdmin ? [fetchSales()] : [])])
 })
+
+function resetDealForm() {
+  dealForm.building_name = ''
+  dealForm.unit_name = ''
+  dealForm.signed_at = ''
+  dealForm.vat_rate = 10
+  dealForm.rental_fee_ex_vat = null
+  dealForm.rental_fee_inc_vat = null
+  dealForm.revenue_rate = null
+  dealForm.revenue_amount = null
+  dealForm.deal_owner_sale_id = null
+  dealForm.note = ''
+}
+
+function formatCurrency(value) {
+  const amount = Number(value || 0)
+  return new Intl.NumberFormat('vi-VN').format(amount)
+}
+
+function onChangeExVat(value) {
+  const exVat = Number(value || 0)
+  const vat = Number(dealForm.vat_rate || 0)
+
+  if (!exVat) {
+    dealForm.rental_fee_inc_vat = null
+    return
+  }
+
+  dealForm.rental_fee_inc_vat = exVat + (exVat * vat / 100)
+}
+
+function onChangeIncVat(value) {
+  const incVat = Number(value || 0)
+  const vat = Number(dealForm.vat_rate || 0)
+
+  if (!incVat) {
+    dealForm.rental_fee_ex_vat = null
+    return
+  }
+
+  dealForm.rental_fee_ex_vat = vat > 0 ? incVat / (1 + vat / 100) : incVat
+}
+
+function onChangeVatRate(value) {
+  const vat = Number(value || 0)
+
+  if (dealForm.rental_fee_ex_vat) {
+    const exVat = Number(dealForm.rental_fee_ex_vat || 0)
+    dealForm.rental_fee_inc_vat = exVat + (exVat * vat / 100)
+    return
+  }
+
+  if (dealForm.rental_fee_inc_vat) {
+    const incVat = Number(dealForm.rental_fee_inc_vat || 0)
+    dealForm.rental_fee_ex_vat = vat > 0 ? incVat / (1 + vat / 100) : incVat
+  }
+}
+async function submitNormalStatusChange(customerId, status) {
+  try {
+    boardLoading.value = true
+    await updateCustomerStatusApi(customerId, { status })
+    message.success('Cập nhật trạng thái thành công.')
+    pendingStageChange.value = null
+    await fetchCustomers()
+  } catch (error) {
+    message.error(error?.response?.data?.message || 'Không thể cập nhật trạng thái.')
+    await fetchCustomers()
+  } finally {
+    boardLoading.value = false
+  }
+}
+
+async function submitCloseDeal() {
+  const customer = pendingStageChange.value?.customer
+  if (!customer?.id) return
+
+  if (!dealForm.building_name?.trim()) {
+    message.warning('Vui lòng nhập tòa nhà.')
+    return
+  }
+
+  if (!dealForm.signed_at) {
+    message.warning('Vui lòng chọn ngày ký.')
+    return
+  }
+
+  if (
+    (dealForm.rental_fee_ex_vat === null || dealForm.rental_fee_ex_vat === '') &&
+    (dealForm.rental_fee_inc_vat === null || dealForm.rental_fee_inc_vat === '')
+  ) {
+    message.warning('Vui lòng nhập giá chưa VAT hoặc giá đã VAT.')
+    return
+  }
+
+  if (dealForm.revenue_amount === null || dealForm.revenue_amount === '') {
+    message.warning('Vui lòng nhập doanh thu ghi nhận.')
+    return
+  }
+
+  if (isAdmin.value && !dealForm.deal_owner_sale_id) {
+    message.warning('Vui lòng chọn sale nhận deal.')
+    return
+  }
+
+  try {
+    closingDealLoading.value = true
+
+    await closeDealApi(customer.id, {
+      building_name: dealForm.building_name,
+      unit_name: dealForm.unit_name || null,
+      signed_at: dealForm.signed_at,
+      vat_rate: dealForm.vat_rate ?? 0,
+      rental_fee_ex_vat: dealForm.rental_fee_ex_vat,
+      rental_fee_inc_vat: dealForm.rental_fee_inc_vat,
+      revenue_rate: dealForm.revenue_rate,
+      revenue_amount: dealForm.revenue_amount,
+      deal_owner_sale_id: isAdmin.value ? dealForm.deal_owner_sale_id : null,
+      note: dealForm.note || null,
+    })
+
+    message.success('Chốt hợp đồng thành công.')
+    dealModalVisible.value = false
+    pendingStageChange.value = null
+    await fetchCustomers()
+  } catch (error) {
+    message.error(error?.response?.data?.message || 'Không thể chốt hợp đồng.')
+    await fetchCustomers()
+  } finally {
+    closingDealLoading.value = false
+  }
+}
+
+function cancelDealModal() {
+  dealModalVisible.value = false
+  pendingStageChange.value = null
+  fetchCustomers()
+}
 </script>
 
 <style scoped>
