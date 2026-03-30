@@ -2,99 +2,111 @@
   <MainLayout>
     <div class="flex h-full min-w-0 flex-col">
       <!-- Toolbar -->
-      <div class="mb-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-        <div class="mb-3 flex items-center justify-between gap-3">
-          <div>
-            <h1 class="text-lg font-bold text-slate-900">Quản lý khách hàng</h1>
-            <p class="text-sm text-slate-500">Pipeline chăm sóc khách thuê văn phòng</p>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-            <router-link
-              to="/customers/create"
-              class="crm-top-action crm-top-action-primary"
-            >
-              + Thêm khách hàng
-            </router-link>
-
-            <router-link
-              v-if="auth.isAdmin"
-              to="/users"
-              class="crm-top-action crm-top-action-secondary"
-            >
-              Quản lý sale
-            </router-link>
-          </div>
+      <!-- Base CRM Header -->
+      <div class="crm-base-header">
+        <div class="crm-base-header-left">
+          <div class="crm-base-title">Khách hàng</div>
         </div>
 
-        <div class="crm-filter-grid">
+        <div class="crm-base-header-center">
           <input
             v-model="filters.keyword"
-            class="crm-filter-input"
-            placeholder="Tìm tên, SĐT, email..."
+            class="crm-base-search"
+            placeholder="Tìm tên, SĐT..."
             @keyup.enter="fetchCustomers"
           />
 
           <select
-            v-model="filters.lead_source_id"
-            class="crm-filter-input"
-          >
-            <option value="">Tất cả nguồn</option>
-            <option v-for="item in leadSources" :key="item.id" :value="item.id">
-              {{ item.name }}
-            </option>
-          </select>
-
-          <select
             v-model="filters.status"
-            class="crm-filter-input"
+            class="crm-base-control"
           >
-            <option value="">Tất cả trạng thái</option>
+            <option value="">Trạng thái</option>
             <option v-for="item in stages" :key="item.value" :value="item.value">
               {{ item.label }}
             </option>
           </select>
 
           <select
+            v-model="filters.lead_source_id"
+            class="crm-base-control"
+          >
+            <option value="">Nguồn</option>
+            <option v-for="item in leadSources" :key="item.id" :value="item.id">
+              {{ item.name }}
+            </option>
+          </select>
+
+          <select
             v-if="auth.isAdmin"
             v-model="filters.sale_user_id"
-            class="crm-filter-input"
+            class="crm-base-control"
           >
-            <option value="">Tất cả sale</option>
+            <option value="">Sale</option>
             <option v-for="item in sales" :key="item.id" :value="item.id">
               {{ item.name }}
             </option>
           </select>
 
-          <input
-            v-model="filters.date_from"
-            type="date"
-            class="crm-filter-input"
-          />
+          <button
+            class="crm-base-btn crm-base-btn-light"
+            @click="showFilters = !showFilters"
+          >
+            {{ showFilters ? 'Ẩn lọc' : 'Lọc thêm' }}
+          </button>
+        </div>
 
-          <input
-            v-model="filters.date_to"
-            type="date"
-            class="crm-filter-input"
-          />
-
-          <button class="crm-filter-btn crm-filter-btn-primary" @click="fetchCustomers">
+        <div class="crm-base-header-right">
+          <button
+            class="crm-base-btn crm-base-btn-light"
+            @click="fetchCustomers"
+          >
             Lọc
           </button>
 
-          <button class="crm-filter-btn crm-filter-btn-secondary" @click="resetFilters">
+          <button
+            class="crm-base-btn crm-base-btn-light"
+            @click="resetFilters"
+          >
             Xóa
           </button>
+
+          <router-link
+            to="/customers/create"
+            class="crm-base-btn crm-base-btn-dark"
+          >
+            + Khách hàng
+          </router-link>
+
+          <router-link
+            v-if="auth.isAdmin"
+            to="/users"
+            class="crm-base-btn crm-base-btn-light"
+          >
+            Sale
+          </router-link>
         </div>
       </div>
 
+      <div v-if="showFilters" class="crm-base-advanced-filters">
+        <input
+          v-model="filters.date_from"
+          type="date"
+          class="crm-base-control"
+        />
+
+        <input
+          v-model="filters.date_to"
+          type="date"
+          class="crm-base-control"
+        />
+      </div>
       <!-- Board -->
       <div class="crm-board-scroll min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden">
         <div class="flex h-full min-w-max pr-2">
           <div
             v-for="(stage, index) in stages"
             :key="stage.value"
-            class="kanban-column relative flex h-full w-[280px] shrink-0 flex-col bg-slate-50 transition-colors duration-150 xl:w-[295px] 2xl:w-[310px]"
+            class="kanban-column relative flex h-full w-[236px] shrink-0 flex-col bg-slate-50 transition-colors duration-150 xl:w-[240px] 2xl:w-[244px]"
             :class="[
               index === 0 ? 'rounded-l-2xl border-l border-slate-200' : '-ml-[14px]',
               index === stages.length - 1 ? 'rounded-r-2xl border-r border-slate-200' : '',
@@ -102,14 +114,14 @@
             ]"
           >
             <div
-              class="relative h-[64px] border-b border-slate-200"
+              class="relative h-[56px] border-b border-slate-200"
               :class="[
                 index === 0 ? 'rounded-tl-2xl' : '',
                 index === stages.length - 1 ? 'rounded-tr-2xl overflow-hidden' : '',
               ]"
             >
               <div
-                class="relative z-10 h-full px-4 py-3"
+                class="relative z-10 h-full px-3 py-2.5"
                 :class="[
                   stage.headerClass,
                   index !== 0 ? 'pl-8' : '',
@@ -162,149 +174,111 @@
               >
                 <template #item="{ element }">
                   <div
-                    class="cursor-pointer rounded-xl border p-3 shadow-sm transition duration-150 hover:-translate-y-[1px] hover:shadow-md"
+                    class="crm-card-compact cursor-pointer"
                     :class="[warningCardClass(element), priorityCardClass(element)]"
                     @click="goDetail(element.id)"
                   >
-                    <div class="mb-2 flex items-start justify-between gap-2">
+                    <div class="mb-1 flex items-start justify-between gap-2">
                       <div class="min-w-0 flex-1">
-                        <div class="truncate text-[13px] font-semibold leading-5 text-slate-900">
+                        <div class="truncate text-[12px] font-semibold leading-4 text-slate-900">
                           {{ element.company_name || element.contact_name }}
                         </div>
                         <div class="truncate text-[11px] leading-4 text-slate-500">
-                          {{ element.contact_name }}
+                          {{ element.phone || '-' }}
                         </div>
                       </div>
 
-                      <div class="flex shrink-0 items-center gap-1.5">
+                      <div class="flex shrink-0 items-center gap-1">
                         <button
-                          class="inline-flex h-6 w-6 items-center justify-center rounded-full border text-[11px] transition"
+                          class="crm-priority-icon"
                           :class="element.is_priority
                             ? 'border-amber-300 bg-amber-100 text-amber-700'
                             : 'border-slate-200 bg-white text-slate-400 hover:bg-slate-50'"
                           @click.stop="handleTogglePriority(element)"
-                          :title="element.is_priority ? 'Bỏ đánh dấu ưu tiên' : 'Đánh dấu ưu tiên'"
+                          :title="element.is_priority ? 'Bỏ ưu tiên' : 'Đánh dấu ưu tiên'"
                         >
                           ⚑
                         </button>
 
-                        <span
-                          class="rounded-full bg-white px-2 py-0.5 text-[10px] font-medium text-slate-600 ring-1 ring-slate-200"
-                        >
+                        <span class="rounded-full bg-white px-1.5 py-0.5 text-[10px] font-medium text-slate-500 ring-1 ring-slate-200">
                           {{ element.id }}
                         </span>
                       </div>
                     </div>
 
-                    <div v-if="element.is_priority" class="mb-2">
-                      <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                        Ưu tiên theo dõi
-                      </span>
-                    </div>
-
                     <div
                       v-if="element.warning_level"
-                      class="mb-2 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold"
+                      class="mb-1 rounded-md px-2 py-1 text-[10px] font-semibold"
                       :class="warningBadgeClass(element.warning_level)"
                     >
                       {{ warningText(element) }}
                     </div>
 
-                    <div class="grid grid-cols-2 gap-x-2 gap-y-1.5 text-[11px] leading-4">
-                      <div class="crm-meta-item">
-                        <span class="crm-meta-label">ĐT</span>
-                        <span class="truncate">{{ element.phone || '-' }}</span>
-                      </div>
-
-                      <div class="crm-meta-item">
-                        <span class="crm-meta-label">Nguồn</span>
-                        <span class="truncate">{{ element.lead_source?.name || '-' }}</span>
-                      </div>
-
-                      <div class="crm-meta-item">
-                        <span class="crm-meta-label">KV</span>
-                        <span class="truncate">{{ element.requirement?.preferred_location || '-' }}</span>
-                      </div>
-
-                      <div class="crm-meta-item">
-                        <span class="crm-meta-label">DT</span>
-                        <span class="truncate">
-                          {{ element.requirement?.area_min || '-' }} - {{ element.requirement?.area_max || '-' }}m²
-                        </span>
-                      </div>
-
-                      <div class="crm-meta-item col-span-2">
-                        <span class="crm-meta-label">NS</span>
+                    <div class="space-y-1 text-[11px] leading-4">
+                      <div class="crm-line-mini">
+                        <span class="crm-line-mini-label">Giá</span>
                         <span class="truncate">
                           {{ formatBudget(element.requirement?.budget_min) }} - {{ formatBudget(element.requirement?.budget_max) }}
                         </span>
                       </div>
-                    </div>
 
-                    <div class="mt-2 flex flex-wrap gap-1">
-                      <span
-                        v-for="(user, idx) in element.assigned_users || []"
-                        :key="user.id"
-                        class="rounded-full px-2 py-0.5 text-[10px] font-medium"
-                        :class="idx === 0
-                          ? 'bg-slate-900 text-white'
-                          : 'bg-slate-100 text-slate-700'"
-                      >
-                        {{ user.name }}
-                      </span>
-                    </div>
-
-                    <div
-                      class="mt-2 rounded-lg px-2.5 py-2 text-[11px] leading-4"
-                      :class="element.warning_level
-                        ? noteWarningClass(element.warning_level)
-                        : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200/80'"
-                      :title="element.latest_activity?.content || 'Chưa có ghi chú'"
-                    >
-                      {{ element.latest_activity?.content || 'Chưa có ghi chú' }}
-                    </div>
-
-                    <div class="mt-1 flex items-center justify-between gap-2 text-[10px] leading-4 text-slate-400">
-                      <div class="truncate">
-                        <span v-if="element.latest_activity?.user?.name">
-                          {{ element.latest_activity.user.name }}
-                        </span>
-                        <span v-if="element.latest_activity?.activity_time">
-                          - {{ formatDate(element.latest_activity.activity_time) }}
+                      <div class="crm-line-mini">
+                        <span class="crm-line-mini-label">KV</span>
+                        <span class="truncate">
+                          {{ element.requirement?.preferred_location || '-' }}
                         </span>
                       </div>
 
-                      <span v-if="savingIds.has(element.id)" class="rounded-md bg-amber-50 px-2 py-0.5 font-medium text-amber-700">
-                        Đang lưu
+                      <div
+                        class="crm-line-note-mini"
+                        :class="element.warning_level
+                          ? noteWarningClass(element.warning_level)
+                          : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200/70'"
+                        :title="element.latest_activity?.content || 'Chưa có ghi chú'"
+                      >
+                        {{ element.latest_activity?.content || 'Chưa có ghi chú' }}
+                      </div>
+                    </div>
+                    <!-- SALE -->
+                    <div v-if="element.assigned_users?.length" class="crm-sale-row">
+                      <span
+                        v-for="sale in element.assigned_users"
+                        :key="sale.id"
+                        class="crm-sale-chip"
+                        :class="sale.is_primary ? 'primary' : ''"
+                      >
+                        {{ sale.name }}
                       </span>
                     </div>
-
-                    <div class="mt-2 border-t border-slate-200 pt-2">
-                      <div class="mb-2 text-[10px] text-slate-400">
+                    <div class="mt-1.5 flex items-center justify-between border-t border-slate-200 pt-1.5">
+                      <div class="truncate text-[10px] text-slate-400">
                         {{ formatDate(element.created_at) }}
                       </div>
 
-                      <div class="flex flex-wrap items-center gap-1.5">
+                      <div class="flex items-center gap-1">
                         <button
-                          class="crm-action-btn crm-action-primary"
+                          class="crm-icon-action crm-icon-action-primary"
+                          title="Chi tiết"
                           @click.stop="goDetail(element.id)"
                         >
-                          Chi tiết
+                          👁
                         </button>
 
                         <button
-                          class="crm-action-btn crm-action-success"
+                          class="crm-icon-action crm-icon-action-success"
+                          title="Ghi chú"
                           @click.stop="openQuickNoteModal(element)"
                         >
-                          Ghi chú
+                          ✎
                         </button>
 
                         <button
                           v-if="auth.isAdmin"
-                          class="crm-action-btn crm-action-neutral"
+                          class="crm-icon-action crm-icon-action-neutral"
+                          title="Phân công sale"
                           @click.stop="openAssignModal(element)"
                         >
-                          Sale
+                          👤
                         </button>
                       </div>
                     </div>
@@ -413,6 +387,7 @@ const dragOverStatus = ref('')
 const draggingFromStatus = ref('')
 const showDealModal = ref(false)
 const selectedDealCustomer = ref(null)
+const showFilters = ref(false)
 
 const stageOrder = ['new', 'consulting', 'viewing', 'negotiating', 'deposit', 'contracted', 'lost']
 
@@ -1043,5 +1018,335 @@ const handleDealSaved = async () => {
   .crm-filter-grid {
     grid-template-columns: 1fr;
   }
+}
+.crm-filter-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.crm-filter-input-compact {
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid #d7e0ea;
+  background: #fff;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.18s ease;
+}
+
+.crm-filter-input-compact:focus {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+}
+
+.crm-top-mini-btn {
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid #d7e0ea;
+  background: #fff;
+  color: #334155;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+  text-decoration: none;
+}
+
+.crm-top-mini-btn:hover {
+  background: #f8fafc;
+}
+
+.crm-top-mini-btn-primary {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
+
+.crm-top-mini-btn-primary:hover {
+  background: #1e293b;
+}
+
+.crm-card-compact {
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  padding: 10px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  transition: all 0.16s ease;
+}
+
+.crm-card-compact:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.crm-line-mini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 5px 8px;
+  color: #334155;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.25);
+}
+
+.crm-line-mini-label {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: #64748b;
+  font-size: 10px;
+}
+
+.crm-line-note-mini {
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 11px;
+  line-height: 1.35;
+  min-height: 34px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.crm-priority-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  transition: all 0.15s ease;
+}
+
+.crm-icon-action {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border: 1px solid;
+  transition: all 0.15s ease;
+}
+
+.crm-icon-action-primary {
+  border-color: rgb(191 219 254);
+  background: rgb(239 246 255);
+  color: rgb(29 78 216);
+}
+
+.crm-icon-action-primary:hover {
+  background: rgb(219 234 254);
+}
+
+.crm-icon-action-success {
+  border-color: rgb(167 243 208);
+  background: rgb(236 253 245);
+  color: rgb(4 120 87);
+}
+
+.crm-icon-action-success:hover {
+  background: rgb(209 250 229);
+}
+
+.crm-icon-action-neutral {
+  border-color: rgb(226 232 240);
+  background: rgb(248 250 252);
+  color: rgb(51 65 85);
+}
+
+.crm-icon-action-neutral:hover {
+  background: rgb(241 245 249);
+}
+
+@media (max-width: 1536px) {
+  .crm-filter-grid-compact {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .crm-filter-grid-compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .crm-filter-grid-compact {
+    grid-template-columns: 1fr;
+  }
+}
+.crm-base-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+.crm-base-header-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.crm-base-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.crm-base-header-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.crm-base-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.crm-base-search {
+  width: 220px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #d7e0ea;
+  background: #fff;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.crm-base-search:focus {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+}
+
+.crm-base-control {
+  height: 36px;
+  min-width: 120px;
+  border-radius: 10px;
+  border: 1px solid #d7e0ea;
+  background: #fff;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.crm-base-control:focus {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+}
+
+.crm-base-btn {
+  height: 36px;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.crm-base-btn-light {
+  border: 1px solid #d7e0ea;
+  background: #fff;
+  color: #334155;
+}
+
+.crm-base-btn-light:hover {
+  background: #f8fafc;
+}
+
+.crm-base-btn-dark {
+  border: 1px solid #0f172a;
+  background: #0f172a;
+  color: #fff;
+}
+
+.crm-base-btn-dark:hover {
+  background: #1e293b;
+}
+
+.crm-base-advanced-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+@media (max-width: 1280px) {
+  .crm-base-header {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .crm-base-header-center,
+  .crm-base-header-right {
+    flex-wrap: wrap;
+  }
+
+  .crm-base-search {
+    width: 100%;
+  }
+}
+/* SALE TAG */
+.crm-sale-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.crm-sale-chip {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  font-weight: 600;
+}
+
+.crm-sale-chip.primary {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
 }
 </style>

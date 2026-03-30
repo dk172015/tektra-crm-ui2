@@ -39,21 +39,13 @@
 
     <!-- Main -->
     <div class="crm-main">
-      <!-- Top bar -->
+      <!-- Top bar compact 1 line -->
       <header class="crm-topbar">
         <div class="crm-topbar-left">
-          <div class="crm-breadcrumb">
-            <span class="crm-breadcrumb-item">CRM</span>
-            <span class="crm-breadcrumb-sep">/</span>
-            <span class="crm-breadcrumb-item current">{{ currentPageTitle }}</span>
-          </div>
-
-          <div class="crm-welcome">
-            <div class="crm-welcome-sub">Xin chào</div>
-            <div class="crm-welcome-main">
-              {{ auth.user?.name || 'User' }}
-              <span class="crm-role">- {{ auth.user?.role || 'user' }}</span>
-            </div>
+          <div class="crm-breadcrumb-inline">
+            <span class="crm-breadcrumb-inline-muted">CRM</span>
+            <span class="crm-breadcrumb-inline-sep">/</span>
+            <span class="crm-breadcrumb-inline-current">{{ currentPageTitle }}</span>
           </div>
         </div>
 
@@ -62,9 +54,10 @@
             <div class="crm-profile-avatar">
               {{ userInitials }}
             </div>
+
             <div class="crm-profile-meta">
               <div class="crm-profile-name">{{ auth.user?.name || 'User' }}</div>
-              <div class="crm-profile-link">Thông tin tài khoản</div>
+              <div class="crm-profile-link">{{ auth.user?.role || 'user' }}</div>
             </div>
           </RouterLink>
 
@@ -277,15 +270,15 @@ const logout = async () => {
 }
 
 .crm-topbar {
-  min-height: 74px;
-  padding: 10px 22px;
-  background: rgba(255,255,255,0.88);
+  height: 56px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid #dde5ef;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
+  gap: 14px;
   position: sticky;
   top: 0;
   z-index: 20;
@@ -293,52 +286,53 @@ const logout = async () => {
 
 .crm-topbar-left {
   min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 
-.crm-breadcrumb {
+.crm-breadcrumb-inline {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
-  color: #94a3b8;
-  margin-bottom: 6px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.crm-breadcrumb-item.current {
-  color: #475569;
+.crm-breadcrumb-inline-muted {
+  font-size: 11px;
+  color: #94a3b8;
   font-weight: 600;
 }
 
-.crm-welcome-sub {
-  font-size: 12px;
-  color: #94a3b8;
+.crm-breadcrumb-inline-sep {
+  font-size: 11px;
+  color: #cbd5e1;
 }
 
-.crm-welcome-main {
-  font-size: 16px;
+.crm-breadcrumb-inline-current {
+  font-size: 13px;
+  color: #334155;
   font-weight: 700;
-  color: #0f172a;
-}
-
-.crm-role {
-  color: #94a3b8;
-  font-weight: 600;
 }
 
 .crm-topbar-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .crm-profile-chip {
   display: flex;
   align-items: center;
-  gap: 10px;
-  border-radius: 16px;
+  gap: 8px;
+  border-radius: 14px;
   border: 1px solid #e2e8f0;
   background: #fff;
-  padding: 8px 12px;
+  padding: 5px 10px;
   text-decoration: none;
   transition: all 0.18s ease;
 }
@@ -349,41 +343,42 @@ const logout = async () => {
 }
 
 .crm-profile-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   background: linear-gradient(180deg, #0f172a, #1e293b);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
 .crm-profile-meta {
-  line-height: 1.15;
+  line-height: 1.05;
 }
 
 .crm-profile-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: #0f172a;
 }
 
 .crm-profile-link {
-  font-size: 12px;
+  font-size: 11px;
   color: #64748b;
 }
 
 .crm-topbar-btn {
-  height: 40px;
-  border-radius: 14px;
+  height: 36px;
+  border-radius: 12px;
   border: 1px solid #dbe4ef;
   background: #fff;
   color: #0f172a;
-  padding: 0 16px;
-  font-size: 14px;
+  padding: 0 14px;
+  font-size: 13px;
   font-weight: 600;
   transition: all 0.18s ease;
 }
@@ -394,7 +389,7 @@ const logout = async () => {
 }
 
 .crm-content {
-  padding: 14px 16px 16px;
+  padding: 12px 14px 14px;
   min-width: 0;
 }
 
@@ -408,18 +403,51 @@ const logout = async () => {
     width: 82px;
   }
 
-  .crm-nav-label,
-  .crm-welcome-sub,
-  .crm-breadcrumb {
+  .crm-nav-label {
     display: none;
   }
 
   .crm-topbar {
-    padding: 10px 14px;
+    height: 52px;
+    padding: 0 10px;
   }
 
   .crm-profile-meta {
     display: none;
+  }
+
+  .crm-topbar-btn {
+    height: 34px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .crm-breadcrumb-inline-muted {
+    display: none;
+  }
+
+  .crm-breadcrumb-inline-sep {
+    display: none;
+  }
+
+  .crm-breadcrumb-inline-current {
+    font-size: 12px;
+  }
+
+  .crm-topbar-right {
+    gap: 6px;
+  }
+
+  .crm-profile-chip {
+    padding: 4px 6px;
+  }
+
+  .crm-profile-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 11px;
   }
 }
 </style>

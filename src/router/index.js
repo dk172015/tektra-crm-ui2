@@ -5,6 +5,8 @@ import CustomerBoardPage from '../pages/customers/CustomerBoardPage.vue'
 import CustomerCreatePage from '../pages/customers/CustomerCreatePage.vue'
 import CustomerDetailPage from '../pages/customers/CustomerDetailPage.vue'
 import UserManagementPage from '../pages/users/UserManagementPage.vue'
+import UsersPage from '../pages/users/UsersPage.vue'
+import ProfilePage from '../pages/profile/ProfilePage.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -46,7 +48,13 @@ const router = createRouter({
     {
       path: '/users',
       name: 'users.index',
-      component: UserManagementPage,
+      component: UsersPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/profile',
+      name: 'profile.index',
+      component: ProfilePage,
       meta: { requiresAuth: true },
     },
   ],
