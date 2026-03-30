@@ -111,6 +111,8 @@
               index === 0 ? 'rounded-l-2xl border-l border-slate-200' : '-ml-[14px]',
               index === stages.length - 1 ? 'rounded-r-2xl border-r border-slate-200' : '',
               dragOverStatus === stage.value ? 'bg-slate-100/80' : '',
+              stage.value === 'contracted' ? 'crm-column-contracted' : '',
+              stage.value === 'lost' ? 'crm-column-lost' : '',
             ]"
           >
             <div
@@ -358,6 +360,11 @@
       :customerId="selectedDealCustomer?.id"
       @saved="handleDealSaved"
     />
+    <MarkLostModal
+      v-model="showLostModal"
+      :customerId="selectedLostCustomer?.id"
+      @saved="handleLostSaved"
+    />
   </MainLayout> 
 </template>
 
@@ -373,6 +380,8 @@ import { getLeadSourcesApi } from '../../api/leadSources'
 import { getUsersApi } from '../../api/users'
 import { useAuthStore } from '../../stores/auth'
 import CloseDealModal from '../../components/customers/CloseDealModal.vue'
+import MarkLostModal from '../../components/customers/MarkLostModal.vue'
+
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -388,6 +397,12 @@ const draggingFromStatus = ref('')
 const showDealModal = ref(false)
 const selectedDealCustomer = ref(null)
 const showFilters = ref(false)
+const showLostModal = ref(false)
+const selectedLostCustomer = ref(null)
+
+const lockedStages = ['contracted', 'lost']
+
+const isLockedStage = (status) => lockedStages.includes(status)
 
 const stageOrder = ['new', 'consulting', 'viewing', 'negotiating', 'deposit', 'contracted', 'lost']
 
@@ -556,6 +571,12 @@ const handleMove = (evt, targetStatus) => {
   const draggedItem = evt?.draggedContext?.element
   if (!draggedItem) return true
 
+  // khách đã ở tab chốt / mất thì không kéo nữa
+  if (isLockedStage(draggedItem.status)) return false
+
+  // không cho thả vào tab locked bằng kéo thường
+  // riêng contracted / lost sẽ vẫn đi qua flow confirm + modal
+  // nên chỗ này vẫn cho phép move tới contracted/lost nếu đang ở tab active
   if (auth.isAdmin) return true
 
   return canMoveToStage(draggedItem.status, targetStatus)
@@ -596,6 +617,19 @@ const confirmMoveStage = async () => {
           id: moveConfirm.customerId
         }
         showDealModal.value = true
+        await fetchCustomers()
+      } else {
+        await updateCustomerStatusApi(moveConfirm.customerId, {
+          status: moveConfirm.toStatus,
+        })
+        await fetchCustomers()
+      }
+    if (moveConfirm.toStatus === 'lost') {
+        selectedLostCustomer.value = {
+          id: moveConfirm.customerId
+        }
+        showLostModal.value = true
+        await fetchCustomers()
       } else {
         await updateCustomerStatusApi(moveConfirm.customerId, {
           status: moveConfirm.toStatus,
@@ -622,9 +656,16 @@ const confirmMoveStage = async () => {
 }
 
 const onCardAdded = async (evt, newStatus) => {
+  
   dragOverStatus.value = newStatus
 
   const movedItem = evt?.item?._underlying_vm_ || board[newStatus]?.[evt.newIndex]
+  if (isLockedStage(movedItem.status)) {
+    await fetchCustomers()
+    dragOverStatus.value = ''
+    draggingFromStatus.value = ''
+    return
+  }
 
   if (!movedItem) {
     dragOverStatus.value = ''
@@ -768,6 +809,11 @@ onMounted(async () => {
 
 const handleDealSaved = async () => {
   showDealModal.value = false
+  await fetchCustomers()
+}
+const handleLostSaved = async () => {
+  showLostModal.value = false
+  selectedLostCustomer.value = null
   await fetchCustomers()
 }
 </script>
@@ -1348,5 +1394,19 @@ const handleDealSaved = async () => {
   background: #dbeafe;
   color: #1d4ed8;
   border-color: #bfdbfe;
+}
+.crm-column-contracted {
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.18);
+}
+
+.crm-column-lost {
+  box-shadow: inset 0 0 0 1px rgba(244, 63, 94, 0.18);
+}
+
+.chevron-emerald {
+  background: #047857;
+}
+.chevron-emerald-active {
+  background: #065f46;
 }
 </style>

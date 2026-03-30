@@ -68,14 +68,27 @@
             {{ priorityLoading ? 'Đang xử lý...' : (customer.is_priority ? 'Bỏ ưu tiên' : 'Đánh dấu ưu tiên') }}
           </button>
 
-          <button
-            v-if="auth.isAdmin"
+         <button
+            v-if="auth.isAdmin && !isClosedStatus"
             class="crm-detail-btn crm-detail-btn-secondary"
             @click="showAssignModal = true"
           >
             Phân công sale
           </button>
-
+        <button
+          v-if="customer.status === 'contracted' && auth.isAdmin"
+          class="crm-detail-btn crm-detail-btn-secondary"
+          @click="showEditDealModal = true"
+        >
+          Sửa hợp đồng
+        </button>
+        <button
+          v-if="customer.status === 'lost' && auth.isAdmin"
+          class="crm-detail-btn crm-detail-btn-secondary"
+          @click="showEditLossModal = true"
+        >
+          Sửa thông tin mất khách
+        </button>
           <router-link
             to="/customers"
             class="crm-detail-btn crm-detail-btn-primary"
@@ -269,7 +282,7 @@
         <!-- Right column -->
         <div class="space-y-4 xl:col-span-8">
           <!-- Quick update -->
-          <section class="crm-panel">
+          <section v-if="!isReadonlyForSale" class="crm-panel">
             <div class="crm-panel-header">
               <div>
                 <h2 class="crm-panel-title">Cập nhật nhanh</h2>
@@ -346,7 +359,7 @@
           </section>
 
           <!-- Viewing -->
-          <section class="crm-panel">
+          <section v-if="!isClosedStatus" class="crm-panel">
             <div class="crm-panel-header">
               <div>
                 <h2 class="crm-panel-title">Lịch đi xem mặt bằng</h2>
@@ -547,6 +560,17 @@
         @saved="reloadCustomer"
       />
     </div>
+    <EditDealModal
+      v-model="showEditDealModal"
+      :customerId="customer.id"
+      @saved="handleDealUpdated"
+    />
+
+    <EditLossModal
+      v-model="showEditLossModal"
+      :customerId="customer.id"
+      @saved="handleLossUpdated"
+    />
   </MainLayout>
 </template>
 
@@ -555,6 +579,8 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import MainLayout from '../../layouts/MainLayout.vue'
 import AssignSalesModal from '../../components/customers/AssignSalesModal.vue'
+import EditDealModal from '../../components/customers/EditDealModal.vue'
+import EditLossModal from '../../components/customers/EditLossModal.vue'
 import {
   addActivityApi,
   addViewingApi,
@@ -579,6 +605,21 @@ const noteError = ref('')
 const activityError = ref('')
 const viewingError = ref('')
 
+const showEditDealModal = ref(false)
+const showEditLossModal = ref(false)
+
+
+const isClosedStatus = computed(() =>
+  ['contracted', 'lost'].includes(customer.value?.status)
+)
+
+const isReadonlyForSale = computed(() =>
+  isClosedStatus.value && auth.user?.role !== 'admin'
+)
+
+const canAdminEditClosed = computed(() =>
+  isClosedStatus.value && auth.user?.role === 'admin'
+)
 const noteForm = reactive({
   content: '',
 })
@@ -871,7 +912,15 @@ const warningText = (item) => {
   if (item.warning_level === 'yellow') return `${days} ngày cần theo dõi`
   return ''
 }
+const handleDealUpdated = async () => {
+  showEditDealModal.value = false
+  await reloadCustomer()
+}
 
+const handleLossUpdated = async () => {
+  showEditLossModal.value = false
+  await reloadCustomer()
+}
 onMounted(async () => {
   await reloadCustomer()
 })
