@@ -399,6 +399,7 @@ const selectedDealCustomer = ref(null)
 const showFilters = ref(false)
 const showLostModal = ref(false)
 const selectedLostCustomer = ref(null)
+const specialMoveLoading = ref(false)
 
 const lockedStages = ['contracted', 'lost']
 
@@ -608,43 +609,54 @@ const cancelMoveConfirm = async () => {
 const confirmMoveStage = async () => {
   if (!moveConfirm.customerId || !moveConfirm.toStatus) return
 
+  if (moveConfirm.toStatus === 'contracted') {
+    const customerId = moveConfirm.customerId
+
+    if (!customerId) {
+      await fetchCustomers()
+      resetMoveConfirm()
+      return
+    }
+
+    pendingSpecialMove.customerId = customerId
+    pendingSpecialMove.fromStatus = moveConfirm.fromStatus
+    pendingSpecialMove.toStatus = moveConfirm.toStatus
+
+    selectedDealCustomer.value = { id: customerId }
+    showDealModal.value = true
+    resetMoveConfirm()
+    return
+  }
+
+  if (moveConfirm.toStatus === 'lost') {
+    const customerId = moveConfirm.customerId
+
+    if (!customerId) {
+      await fetchCustomers()
+      resetMoveConfirm()
+      return
+    }
+
+    pendingSpecialMove.customerId = customerId
+    pendingSpecialMove.fromStatus = moveConfirm.fromStatus
+    pendingSpecialMove.toStatus = moveConfirm.toStatus
+
+    selectedLostCustomer.value = { id: customerId }
+    showLostModal.value = true
+    resetMoveConfirm()
+    return
+  }
+
   moveConfirm.loading = true
   savingIds.value.add(moveConfirm.customerId)
 
   try {
-    if (moveConfirm.toStatus === 'contracted') {
-        selectedDealCustomer.value = {
-          id: moveConfirm.customerId
-        }
-        showDealModal.value = true
-        await fetchCustomers()
-      } else {
-        await updateCustomerStatusApi(moveConfirm.customerId, {
-          status: moveConfirm.toStatus,
-        })
-        await fetchCustomers()
-      }
-    if (moveConfirm.toStatus === 'lost') {
-        selectedLostCustomer.value = {
-          id: moveConfirm.customerId
-        }
-        showLostModal.value = true
-        await fetchCustomers()
-      } else {
-        await updateCustomerStatusApi(moveConfirm.customerId, {
-          status: moveConfirm.toStatus,
-        })
-        await fetchCustomers()
-      }
+    await updateCustomerStatusApi(moveConfirm.customerId, {
+      status: moveConfirm.toStatus,
+    })
+
+    resetMoveConfirm()
     await fetchCustomers()
-    moveConfirm.open = false
-    moveConfirm.loading = false
-    moveConfirm.customerId = null
-    moveConfirm.customerName = ''
-    moveConfirm.fromStatus = ''
-    moveConfirm.toStatus = ''
-    moveConfirm.fromLabel = ''
-    moveConfirm.toLabel = ''
   } catch (error) {
     await fetchCustomers()
     moveConfirm.loading = false
@@ -656,20 +668,14 @@ const confirmMoveStage = async () => {
 }
 
 const onCardAdded = async (evt, newStatus) => {
-  
   dragOverStatus.value = newStatus
 
   const movedItem = evt?.item?._underlying_vm_ || board[newStatus]?.[evt.newIndex]
-  if (isLockedStage(movedItem.status)) {
-    await fetchCustomers()
-    dragOverStatus.value = ''
-    draggingFromStatus.value = ''
-    return
-  }
 
   if (!movedItem) {
     dragOverStatus.value = ''
     draggingFromStatus.value = ''
+    await fetchCustomers()
     return
   }
 
@@ -678,11 +684,14 @@ const onCardAdded = async (evt, newStatus) => {
   if (oldStatus === newStatus) {
     dragOverStatus.value = ''
     draggingFromStatus.value = ''
+    await fetchCustomers()
     return
   }
 
+  // Luôn rollback UI tạm thời ngay, không cho card nằm ở cột mới trước khi save thành công
+  await fetchCustomers()
+
   if (!canMoveToStage(oldStatus, newStatus)) {
-    await fetchCustomers()
     dragOverStatus.value = ''
     draggingFromStatus.value = ''
     window.alert('Bạn không có quyền chuyển khách hàng ngược về giai đoạn trước.')
@@ -690,6 +699,9 @@ const onCardAdded = async (evt, newStatus) => {
   }
 
   openMoveConfirm(movedItem, oldStatus, newStatus)
+
+  dragOverStatus.value = ''
+  draggingFromStatus.value = ''
 }
 
 const handleTogglePriority = async (customer) => {
@@ -809,11 +821,23 @@ onMounted(async () => {
 
 const handleDealSaved = async () => {
   showDealModal.value = false
+  selectedDealCustomer.value = null
+  resetPendingSpecialMove()
   await fetchCustomers()
 }
+
 const handleLostSaved = async () => {
   showLostModal.value = false
   selectedLostCustomer.value = null
+  resetPendingSpecialMove()
+  await fetchCustomers()
+}
+const rollbackBoardAfterSpecialCancel = async () => {
+  showDealModal.value = false
+  showLostModal.value = false
+  selectedDealCustomer.value = null
+  selectedLostCustomer.value = null
+  resetPendingSpecialMove()
   await fetchCustomers()
 }
 </script>

@@ -608,7 +608,6 @@ const viewingError = ref('')
 const showEditDealModal = ref(false)
 const showEditLossModal = ref(false)
 
-
 const isClosedStatus = computed(() =>
   ['contracted', 'lost'].includes(customer.value?.status)
 )
