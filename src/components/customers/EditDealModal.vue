@@ -80,7 +80,32 @@
           <label class="crm-label">Phí môi giới</label>
           <input v-model="form.brokerage_fee" type="number" min="0" step="0.01" class="crm-input" />
         </div>
-
+        <div class="md:col-span-2">
+        <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
+            <input type="checkbox" v-model="form.has_vat" />
+            Có VAT
+        </label>
+        </div>
+        <div v-if="form.has_vat">
+        <label class="crm-label">Doanh thu VAT</label>
+        <input
+            v-model="form.vat_revenue"
+            type="number"
+            min="0"
+            step="0.01"
+            class="crm-input"
+        />
+        </div>
+        <div>
+        <label class="crm-label">Phí back lại nguồn</label>
+        <input
+            v-model="form.back_fee"
+            type="number"
+            min="0"
+            step="0.01"
+            class="crm-input"
+        />
+        </div>
         <div>
           <label class="crm-label">Sale chốt <span class="text-red-500">*</span></label>
           <select v-model="form.closer_user_id" class="crm-input">
@@ -141,6 +166,9 @@ const form = reactive({
   brokerage_fee: '',
   closer_user_id: '',
   note: '',
+  has_vat: false,
+vat_revenue: '',
+back_fee: '',
 })
 
 const normalizeDate = (value) => {
@@ -188,6 +216,9 @@ const loadData = async () => {
   form.brokerage_fee = dealData.brokerage_fee || ''
   form.closer_user_id = dealData.closer_user_id || ''
   form.note = dealData.note || ''
+  form.has_vat = !!dealData.has_vat
+    form.vat_revenue = dealData.vat_revenue || ''
+    form.back_fee = dealData.back_fee || ''
 }
 
 watch(
@@ -236,6 +267,9 @@ const submit = async () => {
       brokerage_fee: form.brokerage_fee || null,
       closer_user_id: form.closer_user_id,
       note: form.note || null,
+      has_vat: form.has_vat ? 1 : 0,
+    vat_revenue: form.has_vat ? (form.vat_revenue || null) : null,
+    back_fee: form.back_fee || null,
     })
 
     emit('saved')
