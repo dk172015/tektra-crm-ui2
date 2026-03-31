@@ -605,6 +605,17 @@ const cancelMoveConfirm = async () => {
   moveConfirm.toLabel = ''
   await fetchCustomers()
 }
+const resetMoveConfirm = async () => {
+  moveConfirm.open = false
+  moveConfirm.loading = false
+  moveConfirm.customerId = null
+  moveConfirm.customerName = ''
+  moveConfirm.fromStatus = ''
+  moveConfirm.toStatus = ''
+  moveConfirm.fromLabel = ''
+  moveConfirm.toLabel = ''
+  await fetchCustomers()
+}
 
 const confirmMoveStage = async () => {
   if (!moveConfirm.customerId || !moveConfirm.toStatus) return
@@ -648,6 +659,7 @@ const confirmMoveStage = async () => {
   }
 
   moveConfirm.loading = true
+  const currentCustomerId =moveConfirm.customerId
   savingIds.value.add(moveConfirm.customerId)
 
   try {
@@ -661,7 +673,7 @@ const confirmMoveStage = async () => {
     await fetchCustomers()
     moveConfirm.loading = false
   } finally {
-    savingIds.value.delete(moveConfirm.customerId)
+    savingIds.value.delete(currentCustomerId)
     dragOverStatus.value = ''
     draggingFromStatus.value = ''
   }
