@@ -8,6 +8,7 @@
         </div>
 
         <button
+          v-if="canManageUsers"
           class="rounded-2xl bg-slate-900 px-4 py-3 font-medium text-white"
           @click="openCreate"
         >
@@ -41,7 +42,7 @@
                     {{ item.is_active ? 'Đang hoạt động' : 'Đã khóa' }}
                   </span>
                 </td>
-                <td class="px-4 py-4">
+                <td class="px-4 py-4" v-if="canManageUsers">
                   <div class="flex flex-wrap gap-2">
                     <button class="rounded-xl border px-3 py-2" @click="openEdit(item)">Sửa</button>
                     <button class="rounded-xl border px-3 py-2" @click="toggleStatus(item)">
@@ -102,11 +103,14 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import MainLayout from '../../layouts/MainLayout.vue'
+import { useAuthStore } from '../../stores/auth'
 import { createUserApi, getUsersApi, toggleUserStatusApi, updateUserApi } from '../../api/users'
 
 const users = ref([])
 const showModal = ref(false)
 const errorMessage = ref('')
+const auth = useAuthStore()
+const canManageUsers = computed(() => auth.isAdmin)
 
 const form = reactive({
   id: null,
@@ -123,6 +127,7 @@ const fetchUsers = async () => {
 }
 
 const openCreate = () => {
+  if (!canManageUsers.value) return
   errorMessage.value = ''
   form.id = null
   form.name = ''
@@ -134,6 +139,7 @@ const openCreate = () => {
 }
 
 const openEdit = (item) => {
+  if (!canManageUsers.value) return
   errorMessage.value = ''
   form.id = item.id
   form.name = item.name
@@ -144,11 +150,12 @@ const openEdit = (item) => {
   showModal.value = true
 }
 
-const closeModal = () => {
+const closeModal = () => {  
   showModal.value = false
 }
 
 const saveUser = async () => {
+  if (!canManageUsers.value) return
   errorMessage.value = ''
 
   try {
@@ -169,6 +176,7 @@ const saveUser = async () => {
 }
 
 const toggleStatus = async (item) => {
+  if (!canManageUsers.value) return
   await toggleUserStatusApi(item.id)
   await fetchUsers()
 }

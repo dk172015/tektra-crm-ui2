@@ -84,23 +84,25 @@ const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 const sidebarCollapsed = ref(false)
+const canManageUsers = computed(() => auth.isAdmin)
 
-const navigationItems = [
-  {
-    label: 'Dashboard',
-    to: '/dashboard',
-    icon: `
+const navigationItems =  computed(() => {
+  const items = [
+    {
+      label: 'Dashboard',
+      to: '/dashboard',
+      icon: `
       <svg viewBox="0 0 24 24" fill="none" class="crm-svg">
         <path d="M4 13H10V20H4V13Z" stroke="currentColor" stroke-width="2" />
         <path d="M14 4H20V20H14V4Z" stroke="currentColor" stroke-width="2" />
         <path d="M4 4H10V9H4V4Z" stroke="currentColor" stroke-width="2" />
       </svg>
     `,
-  },
-  {
-    label: 'Khách hàng',
-    to: '/customers',
-    icon: `
+    },
+    {
+      label: 'Quản lý khách',
+      to: '/customers',
+      icon: `
       <svg viewBox="0 0 24 24" fill="none" class="crm-svg">
         <path d="M16 21V19C16 17.8954 15.1046 17 14 17H6C4.89543 17 4 17.8954 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         <circle cx="10" cy="9" r="4" stroke="currentColor" stroke-width="2"/>
@@ -108,21 +110,24 @@ const navigationItems = [
         <path d="M15 5.13C15.893 5.35 16.5193 6.15474 16.52 7.077V9.077" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
     `,
-  },
-  {
-    label: 'Tạo khách',
-    to: '/customers/create',
-    icon: `
+    },
+    {
+      label: 'Tạo khách',
+      to: '/customers/create',
+      icon: `
       <svg viewBox="0 0 24 24" fill="none" class="crm-svg">
         <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
     `,
-  },
-  {
-    label: 'Quản lý sale',
-    to: '/users',
-    icon: `
+    },
+  ]
+
+  if (auth.isAdmin) {
+    items.push({
+      label: 'Quản lý sale',
+      to: '/users',
+     icon: `
       <svg viewBox="0 0 24 24" fill="none" class="crm-svg">
         <circle cx="9" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
         <path d="M3 20C3.8 16.8 6.1 15 9 15C11.9 15 14.2 16.8 15 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -130,8 +135,11 @@ const navigationItems = [
         <path d="M15 11H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
     `,
-  },
-]
+    })
+  }
+
+  return items
+})
 
 const currentPageTitle = computed(() => {
   if (route.path.startsWith('/customers/create')) return 'Tạo khách hàng'
@@ -141,6 +149,8 @@ const currentPageTitle = computed(() => {
   if (route.path.startsWith('/profile')) return 'Thông tin tài khoản'
   return 'Dashboard'
 })
+
+
 
 const userInitials = computed(() => {
   const name = auth.user?.name || 'U'
