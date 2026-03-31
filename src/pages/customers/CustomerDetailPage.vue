@@ -89,6 +89,46 @@
         >
           Sửa thông tin mất khách
         </button>
+        <div
+          v-if="canAdminEditClosed"
+          class="flex flex-wrap gap-2"
+        >
+          <button
+            v-if="customer.status === 'contracted'"
+            class="crm-detail-btn crm-detail-btn-secondary"
+            :disabled="adminClosedActionLoading"
+            @click="handleAdminChangeClosedStatus('negotiating')"
+          >
+            Mở lại đàm phán
+          </button>
+
+          <button
+            v-if="customer.status === 'contracted'"
+            class="crm-detail-btn crm-detail-btn-secondary"
+            :disabled="adminClosedActionLoading"
+            @click="handleAdminChangeClosedStatus('deposit')"
+          >
+            Quay về đặt cọc
+          </button>
+
+          <button
+            v-if="customer.status === 'lost'"
+            class="crm-detail-btn crm-detail-btn-secondary"
+            :disabled="adminClosedActionLoading"
+            @click="handleAdminChangeClosedStatus('consulting')"
+          >
+            Mở lại tư vấn
+          </button>
+
+          <button
+            v-if="customer.status === 'lost'"
+            class="crm-detail-btn crm-detail-btn-secondary"
+            :disabled="adminClosedActionLoading"
+            @click="handleAdminChangeClosedStatus('negotiating')"
+          >
+            Mở lại đàm phán
+          </button>
+        </div>
           <router-link
             to="/customers"
             class="crm-detail-btn crm-detail-btn-primary"
@@ -97,7 +137,18 @@
           </router-link>
         </div>
       </section>
-
+      <div
+        v-if="statusActionError"
+        class="mt-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+      >
+        {{ statusActionError }}
+      </div>
+      <div
+        v-if="isReadonlyForSale"
+        class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700"
+      >
+        Khách hàng đang ở trạng thái đã chốt hợp đồng hoặc mất khách. Sale chỉ được xem thông tin, không được chỉnh sửa.
+      </div>
       <!-- KPI strip -->
       <section class="crm-detail-kpis">
         <div class="crm-kpi-card">
@@ -282,7 +333,7 @@
         <!-- Right column -->
         <div class="space-y-4 xl:col-span-8">
           <!-- Quick update -->
-          <section v-if="!isReadonlyForSale" class="crm-panel">
+          <section v-if="!isReadonlyForSale && !isClosedStatus" class="crm-panel">
             <div class="crm-panel-header">
               <div>
                 <h2 class="crm-panel-title">Cập nhật nhanh</h2>
@@ -586,6 +637,7 @@ import {
   addViewingApi,
   getCustomerDetailApi,
   togglePriorityApi,
+  updateCustomerStatusApi,
 } from '../../api/customers'
 import { useAuthStore } from '../../stores/auth'
 
@@ -638,6 +690,9 @@ const viewingForm = reactive({
 
 const activityPage = ref(1)
 const activityPerPage = 5
+
+const adminClosedActionLoading = ref(false)
+const statusActionError = ref('')
 
 const customerInitials = computed(() => {
   return getInitials(customer.value.company_name || customer.value.contact_name || 'KH')
@@ -923,6 +978,30 @@ const handleLossUpdated = async () => {
 onMounted(async () => {
   await reloadCustomer()
 })
+const handleAdminChangeClosedStatus = async (targetStatus) => {
+  statusActionError.value = ''
+
+  if (!customer.value?.id) return
+  if (!auth.isAdmin) return
+  if (customer.value.status === targetStatus) return
+
+  adminClosedActionLoading.value = true
+
+  try {
+    await updateCustomerStatusApi(customer.value.id, {
+      status: targetStatus,
+    })
+
+    await reloadCustomer()
+  } catch (error) {
+    statusActionError.value =
+      error.response?.data?.message ||
+      Object.values(error.response?.data?.errors || {}).flat?.()[0] ||
+      'Không thể cập nhật trạng thái khách hàng'
+  } finally {
+    adminClosedActionLoading.value = false
+  }
+}
 </script>
 
 <style scoped>
