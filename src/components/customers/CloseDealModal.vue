@@ -4,7 +4,7 @@
     v-if="modelValue"
     class="fixed inset-0 z-50 flex  overflow-y-auto justify-center items-center bg-black/35 p-4"
   > 
-<div class="flex min-h-full items-start justify-center p-6  m-auto">
+<div class="flex min-h-full items-start justify-center overflow-y-auto p-6  m-auto">
     <div class="w-full max-w-4xl rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
       <div class="mb-5 flex items-start justify-between gap-4">
         <div>

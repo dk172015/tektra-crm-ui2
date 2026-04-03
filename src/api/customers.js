@@ -14,6 +14,7 @@ export const togglePriorityApi = (id) => api.put(`/customers/${id}/toggle-priori
 export const closeDealApi = (id, payload) => api.post(`/customers/${id}/close-deal`, payload)
 export const getCustomerDealApi = (id) => api.get(`/customers/${id}/deal`)
 export const updateCustomerDealApi = (id, payload) => api.put(`/customers/${id}/deal`, payload)
+export const updateCustomerDealApi2 = (id, payload) => api.put(`/customers/${id}/deal`, payload)
 
 export const markLostApi = (id, payload) => api.post(`/customers/${id}/mark-lost`, payload)
 export const getCustomerLossApi = (id) => api.get(`/customers/${id}/loss`)

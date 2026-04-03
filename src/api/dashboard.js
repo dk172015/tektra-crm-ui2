@@ -34,3 +34,8 @@ export const getDashboardRecycleLeadsApi = (params) =>
 
 export const getDashboardAgingPipelineApi = (params) =>
   api.get('/dashboard/aging-pipeline', { params })
+export const getDashboardAssignedCurrentApi = (params) =>
+  api.get('/dashboard/assigned-current', { params })
+
+export const getDashboardAssignedInPeriodApi = (params) =>
+  api.get('/dashboard/assigned-in-period', { params })

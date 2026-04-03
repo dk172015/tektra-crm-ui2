@@ -282,51 +282,173 @@
                 <h2 class="crm-panel-title">Nhu cầu thuê</h2>
                 <p class="crm-panel-subtitle">Thông tin dùng để tư vấn mặt bằng</p>
               </div>
+
+              <button
+                v-if="canEditRequirement && !showRequirementEdit"
+                class="crm-detail-btn crm-detail-btn-secondary"
+                @click="openRequirementEdit"
+              >
+                Sửa nhu cầu
+              </button>
             </div>
 
-            <div class="crm-info-list">
-              <div class="crm-info-row">
-                <span class="crm-info-label">Khu vực</span>
-                <span class="crm-info-value">
-                  {{ customer.requirement?.preferred_location || '-' }}
-                </span>
+            <template v-if="!showRequirementEdit">
+              <div class="crm-info-list">
+                <div class="crm-info-row">
+                  <span class="crm-info-label">Khu vực</span>
+                  <span class="crm-info-value">
+                    {{ customer.requirement?.preferred_location || '-' }}
+                  </span>
+                </div>
+
+                <div class="crm-info-row">
+                  <span class="crm-info-label">Diện tích</span>
+                  <span class="crm-info-value">
+                    {{ customer.requirement?.area_min || '-' }} - {{ customer.requirement?.area_max || '-' }} m²
+                  </span>
+                </div>
+
+                <div class="crm-info-row">
+                  <span class="crm-info-label">Ngân sách</span>
+                  <span class="crm-info-value">
+                    {{ formatBudget(customer.requirement?.budget_min) }} - {{ formatBudget(customer.requirement?.budget_max) }}
+                  </span>
+                </div>
+
+                <div class="crm-info-row">
+                  <span class="crm-info-label">Ngày vào thuê</span>
+                  <span class="crm-info-value">
+                    {{ customer.requirement?.move_in_date || '-' }}
+                  </span>
+                </div>
+
+                <div class="crm-info-row">
+                  <span class="crm-info-label">Kỳ hạn thuê</span>
+                  <span class="crm-info-value">
+                    {{ customer.requirement?.lease_term_months || '-' }} tháng
+                  </span>
+                </div>
               </div>
 
-              <div class="crm-info-row">
-                <span class="crm-info-label">Diện tích</span>
-                <span class="crm-info-value">
-                  {{ customer.requirement?.area_min || '-' }} - {{ customer.requirement?.area_max || '-' }} m²
-                </span>
+              <div class="mt-4">
+                <div class="mb-2 text-sm font-medium text-slate-600">Yêu cầu đặc biệt</div>
+                <div class="crm-note-box">
+                  {{ customer.requirement?.special_requirements || 'Chưa có yêu cầu đặc biệt' }}
+                </div>
+              </div>
+            </template>
+            <template v-else>
+              <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div>
+                  <label class="crm-label">Khu vực</label>
+                  <input
+                    v-model="requirementForm.preferred_location"
+                    class="crm-input"
+                    placeholder="Nhập khu vực mong muốn"
+                  />
+                </div>
+
+                <div></div>
+
+                <div>
+                  <label class="crm-label">Diện tích từ</label>
+                  <input
+                    v-model="requirementForm.area_min"
+                    type="number"
+                    min="0"
+                    class="crm-input"
+                    placeholder="Ví dụ: 50"
+                  />
+                </div>
+
+                <div>
+                  <label class="crm-label">Diện tích đến</label>
+                  <input
+                    v-model="requirementForm.area_max"
+                    type="number"
+                    min="0"
+                    class="crm-input"
+                    placeholder="Ví dụ: 120"
+                  />
+                </div>
+
+                <div>
+                  <label class="crm-label">Ngân sách từ</label>
+                  <input
+                    v-model="requirementForm.budget_min"
+                    type="number"
+                    min="0"
+                    class="crm-input"
+                    placeholder="Ví dụ: 10000000"
+                  />
+                </div>
+
+                <div>
+                  <label class="crm-label">Ngân sách đến</label>
+                  <input
+                    v-model="requirementForm.budget_max"
+                    type="number"
+                    min="0"
+                    class="crm-input"
+                    placeholder="Ví dụ: 30000000"
+                  />
+                </div>
+
+                <div>
+                  <label class="crm-label">Ngày vào thuê</label>
+                  <input
+                    v-model="requirementForm.move_in_date"
+                    type="date"
+                    class="crm-input"
+                  />
+                </div>
+
+                <div>
+                  <label class="crm-label">Kỳ hạn thuê (tháng)</label>
+                  <input
+                    v-model="requirementForm.lease_term_months"
+                    type="number"
+                    min="1"
+                    class="crm-input"
+                    placeholder="Ví dụ: 24"
+                  />
+                </div>
+
+                <div class="md:col-span-2">
+                  <label class="crm-label">Yêu cầu đặc biệt</label>
+                  <textarea
+                    v-model="requirementForm.special_requirements"
+                    rows="4"
+                    class="crm-input h-auto py-3"
+                    placeholder="Nhập yêu cầu đặc biệt..."
+                  />
+                </div>
               </div>
 
-              <div class="crm-info-row">
-                <span class="crm-info-label">Ngân sách</span>
-                <span class="crm-info-value">
-                  {{ formatBudget(customer.requirement?.budget_min) }} - {{ formatBudget(customer.requirement?.budget_max) }}
-                </span>
+              <div
+                v-if="requirementError"
+                class="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+              >
+                {{ requirementError }}
               </div>
 
-              <div class="crm-info-row">
-                <span class="crm-info-label">Ngày vào thuê</span>
-                <span class="crm-info-value">
-                  {{ customer.requirement?.move_in_date || '-' }}
-                </span>
-              </div>
+              <div class="mt-4 flex justify-end gap-3">
+                <button
+                  class="crm-detail-btn crm-detail-btn-secondary"
+                  @click="cancelRequirementEdit"
+                >
+                  Hủy
+                </button>
 
-              <div class="crm-info-row">
-                <span class="crm-info-label">Kỳ hạn thuê</span>
-                <span class="crm-info-value">
-                  {{ customer.requirement?.lease_term_months || '-' }} tháng
-                </span>
+                <button
+                  class="crm-detail-btn crm-detail-btn-primary"
+                  :disabled="requirementLoading"
+                  @click="submitRequirement"
+                >
+                  {{ requirementLoading ? 'Đang lưu...' : 'Lưu nhu cầu' }}
+                </button>
               </div>
-            </div>
-
-            <div class="mt-4">
-              <div class="mb-2 text-sm font-medium text-slate-600">Yêu cầu đặc biệt</div>
-              <div class="crm-note-box">
-                {{ customer.requirement?.special_requirements || 'Chưa có yêu cầu đặc biệt' }}
-              </div>
-            </div>
+            </template>
           </section>
         </div>
 
@@ -638,6 +760,7 @@ import {
   getCustomerDetailApi,
   togglePriorityApi,
   updateCustomerStatusApi,
+  updateCustomerRequirementApi,
 } from '../../api/customers'
 import { useAuthStore } from '../../stores/auth'
 
@@ -686,6 +809,72 @@ const viewingForm = reactive({
   viewing_time: '',
   status: 'scheduled',
   note: '',
+})
+
+const showRequirementEdit = ref(false)
+const requirementLoading = ref(false)
+const requirementError = ref('')
+
+const requirementForm = reactive({
+  preferred_location: '',
+  area_min: '',
+  area_max: '',
+  budget_min: '',
+  budget_max: '',
+  move_in_date: '',
+  lease_term_months: '',
+  special_requirements: '',
+})
+const fillRequirementForm = () => {
+  requirementForm.preferred_location = customer.value.requirement?.preferred_location || ''
+  requirementForm.area_min = customer.value.requirement?.area_min || ''
+  requirementForm.area_max = customer.value.requirement?.area_max || ''
+  requirementForm.budget_min = customer.value.requirement?.budget_min || ''
+  requirementForm.budget_max = customer.value.requirement?.budget_max || ''
+  requirementForm.move_in_date = customer.value.requirement?.move_in_date || ''
+  requirementForm.lease_term_months = customer.value.requirement?.lease_term_months || ''
+  requirementForm.special_requirements = customer.value.requirement?.special_requirements || ''
+}
+const openRequirementEdit = () => {
+  requirementError.value = ''
+  fillRequirementForm()
+  showRequirementEdit.value = true
+}
+
+const cancelRequirementEdit = () => {
+  requirementError.value = ''
+  showRequirementEdit.value = false
+}
+const submitRequirement = async () => {
+  requirementError.value = ''
+  requirementLoading.value = true
+
+  try {
+    await updateCustomerRequirementApi(route.params.id, {
+      preferred_location: requirementForm.preferred_location || null,
+      area_min: requirementForm.area_min || null,
+      area_max: requirementForm.area_max || null,
+      budget_min: requirementForm.budget_min || null,
+      budget_max: requirementForm.budget_max || null,
+      move_in_date: requirementForm.move_in_date || null,
+      lease_term_months: requirementForm.lease_term_months || null,
+      special_requirements: requirementForm.special_requirements || null,
+    })
+
+    showRequirementEdit.value = false
+    await reloadCustomer()
+  } catch (error) {
+    requirementError.value =
+      error.response?.data?.message ||
+      Object.values(error.response?.data?.errors || {}).flat?.()[0] ||
+      'Không thể cập nhật nhu cầu thuê'
+  } finally {
+    requirementLoading.value = false
+  }
+}
+const canEditRequirement = computed(() => {
+  if (auth.user?.role === 'admin') return true
+  return !isReadonlyForSale.value
 })
 
 const activityPage = ref(1)
@@ -1395,5 +1584,12 @@ const handleAdminChangeClosedStatus = async (targetStatus) => {
   .crm-detail-title-row {
     align-items: flex-start;
   }
+}
+.crm-label {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
 }
 </style>
