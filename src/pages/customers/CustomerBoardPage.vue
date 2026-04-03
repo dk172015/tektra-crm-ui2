@@ -400,6 +400,12 @@ const showFilters = ref(false)
 const showLostModal = ref(false)
 const selectedLostCustomer = ref(null)
 const specialMoveLoading = ref(false)
+const pendingSpecialMove = reactive({
+  customerId: null,
+  fromStatus: '',
+  toStatus: '',
+})
+
 
 const lockedStages = ['contracted', 'lost']
 
@@ -843,6 +849,11 @@ const handleLostSaved = async () => {
   selectedLostCustomer.value = null
   resetPendingSpecialMove()
   await fetchCustomers()
+}
+const resetPendingSpecialMove = () => {
+  pendingSpecialMove.customerId = null
+  pendingSpecialMove.fromStatus = ''
+  pendingSpecialMove.toStatus = ''
 }
 const rollbackBoardAfterSpecialCancel = async () => {
   showDealModal.value = false

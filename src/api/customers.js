@@ -18,3 +18,12 @@ export const updateCustomerDealApi = (id, payload) => api.put(`/customers/${id}/
 export const markLostApi = (id, payload) => api.post(`/customers/${id}/mark-lost`, payload)
 export const getCustomerLossApi = (id) => api.get(`/customers/${id}/loss`)
 export const updateCustomerLossApi = (id, payload) => api.put(`/customers/${id}/loss`, payload)
+
+
+export const getCustomerDealsListApi = (params) => api.get('/customer-deals', { params })
+export const getCustomerDealDetailByDealIdApi = (id) => api.get(`/customer-deals/${id}`)
+export const createNewCustomerFromDealApi = (id) => api.post(`/customer-deals/${id}/create-new-customer`)
+
+export const getCustomerLossesListApi = (params) => api.get('/customer-losses', { params })
+export const getCustomerLossDetailByLossIdApi = (id) => api.get(`/customer-losses/${id}`)
+export const createNewCustomerFromLossApi = (id) =>  api.post(`/customer-losses/${id}/create-new-customer`)

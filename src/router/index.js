@@ -1,12 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginPage from '../pages/LoginPage.vue'
-import DashboardPage from '../pages/DashboardPage.vue'
 import CustomerBoardPage from '../pages/customers/CustomerBoardPage.vue'
 import CustomerCreatePage from '../pages/customers/CustomerCreatePage.vue'
 import CustomerDetailPage from '../pages/customers/CustomerDetailPage.vue'
 import UserManagementPage from '../pages/users/UserManagementPage.vue'
 import UsersPage from '../pages/users/UsersPage.vue'
 import ProfilePage from '../pages/profile/ProfilePage.vue'
+import CustomerDealsPage from '../pages/customers/CustomerDealsPage.vue'
+import CustomerLossesPage from '../pages/customers/CustomerLossesPage.vue'
+import DashboardPage from '../pages/Dashboard/DashboardPage.vue'
+import RevenueAnalyticsPage from '../pages/reports/RevenueAnalyticsPage.vue'
+import RevenueReportPage from '../pages/reports/RevenueReportPage.vue'
+import CustomerReportPage from '../pages/reports/CustomerReportPage.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -57,6 +62,42 @@ const router = createRouter({
       component: ProfilePage,
       meta: { requiresAuth: true },
     },
+    {
+      path: '/customer-deals',
+      name: 'customers.deals',
+      component: CustomerDealsPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/customer-losses',
+      name: 'customers.losses',
+      component: CustomerLossesPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: DashboardPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/analytics/revenue',
+      name: 'analytics.revenue',
+      component: RevenueAnalyticsPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/reports/revenue',
+      name: 'reports.revenue',
+      component: RevenueReportPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/reports/customers',
+      name: 'reports.customers',
+      component: CustomerReportPage,
+      meta: { requiresAuth: true },
+    }
   ],
 })
 

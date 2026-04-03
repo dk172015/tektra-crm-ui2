@@ -121,6 +121,38 @@ const navigationItems =  computed(() => {
       </svg>
     `,
     },
+    {
+      label: 'Khách đã chốt',
+      to: '/customer-deals',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M15 19C15 16.7909 12.7614 15 10 15C7.23858 15 5 16.7909 5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="10" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M16 11L18 13L22 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`,
+    },
+    {
+      label: 'Khách đã mất',
+      to: '/customer-losses',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M15 19C15 16.7909 12.7614 15 10 15C7.23858 15 5 16.7909 5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <circle cx="10" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M17 9L21 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M21 9L17 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>`,
+    },
+    {
+      label: 'Phân tích doanh thu',
+      to: '/analytics/revenue',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M3 3V21H21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M5 15L10 10L14 13L20 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`,
+    },
+    { label: 'Báo cáo doanh thu', 
+      to: '/reports/revenue', 
+      icon: `...` 
+    },
+    
   ]
 
   if (auth.isAdmin) {
@@ -147,6 +179,10 @@ const currentPageTitle = computed(() => {
   if (route.path.startsWith('/customers')) return 'Quản lý khách hàng'
   if (route.path.startsWith('/users')) return 'Quản lý sale'
   if (route.path.startsWith('/profile')) return 'Thông tin tài khoản'
+  if (route.path.startsWith('/customer-deals')) return 'Khách đã chốt'
+  if (route.path.startsWith('/customer-losses')) return 'Khách đã mất'
+  if (route.path.startsWith('/analytics/revenue')) return 'Phân tích doanh thu'
+  if (route.path.startsWith('/reports/revenue')) return 'Báo cáo doanh thu'
   return 'Dashboard'
 })
 
