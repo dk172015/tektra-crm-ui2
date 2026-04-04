@@ -182,54 +182,158 @@
                 <h2 class="crm-panel-title">Thông tin khách hàng</h2>
                 <p class="crm-panel-subtitle">Thông tin liên hệ và nguồn lead</p>
               </div>
+
+              <button
+                v-if="canEditCustomerInfo && !showCustomerInfoEdit"
+                class="crm-detail-btn crm-detail-btn-secondary"
+                @click="openCustomerInfoEdit"
+              >
+                Sửa thông tin
+              </button>
             </div>
 
-            <div class="crm-info-list">
-              <div class="crm-info-row">
-                <span class="crm-info-label">Công ty</span>
-                <span class="crm-info-value">{{ customer.company_name || '-' }}</span>
+            <template v-if="!showCustomerInfoEdit">
+              <div class="crm-info-list">
+                <div class="crm-info-row">
+                  <span class="crm-info-label">Công ty</span>
+                  <span class="crm-info-value">{{ customer.company_name || '-' }}</span>
+                </div>
+
+                <div class="crm-info-row">
+                  <span class="crm-info-label">Người liên hệ</span>
+                  <span class="crm-info-value">{{ customer.contact_name || '-' }}</span>
+                </div>
+
+                <div class="crm-info-row">
+                  <span class="crm-info-label">Điện thoại</span>
+                  <span class="crm-info-value">{{ customer.phone || '-' }}</span>
+                </div>
+
+                <div class="crm-info-row">
+                  <span class="crm-info-label">Email</span>
+                  <span class="crm-info-value">{{ customer.email || '-' }}</span>
+                </div>
+
+                <div class="crm-info-row">
+                  <span class="crm-info-label">Nguồn khách</span>
+                  <span class="crm-info-value">{{ customer.lead_source?.name || '-' }}</span>
+                </div>
+
+                <div class="crm-info-row">
+                  <span class="crm-info-label">Chi tiết nguồn</span>
+                  <span class="crm-info-value">{{ customer.source_detail || '-' }}</span>
+                </div>
+
+                <div class="crm-info-row">
+                  <span class="crm-info-label">Campaign</span>
+                  <span class="crm-info-value">{{ customer.campaign_name || '-' }}</span>
+                </div>
+
+                <div class="crm-info-row">
+                  <span class="crm-info-label">Người tạo</span>
+                  <span class="crm-info-value">{{ customer.creator?.name || '-' }}</span>
+                </div>
+
+                <div v-if="customer.priority_marker?.name" class="crm-info-row">
+                  <span class="crm-info-label">Đánh dấu ưu tiên bởi</span>
+                  <span class="crm-info-value">{{ customer.priority_marker?.name || '-' }}</span>
+                </div>
+              </div>
+            </template>
+            <template v-else>
+              <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div>
+                  <label class="crm-label">Công ty</label>
+                  <input
+                    v-model="customerInfoForm.company_name"
+                    class="crm-input"
+                    placeholder="Nhập tên công ty"
+                  />
+                </div>
+
+                <div>
+                  <label class="crm-label">Người liên hệ</label>
+                  <input
+                    v-model="customerInfoForm.contact_name"
+                    class="crm-input"
+                    placeholder="Nhập người liên hệ"
+                  />
+                </div>
+
+                <div>
+                  <label class="crm-label">Điện thoại</label>
+                  <input
+                    v-model="customerInfoForm.phone"
+                    class="crm-input"
+                    placeholder="Nhập số điện thoại"
+                  />
+                </div>
+
+                <div>
+                  <label class="crm-label">Email</label>
+                  <input
+                    v-model="customerInfoForm.email"
+                    class="crm-input"
+                    placeholder="Nhập email"
+                  />
+                </div>
+
+                <div>
+                  <label class="crm-label">Nguồn khách</label>
+                  <select
+                    v-model="customerInfoForm.lead_source_id"
+                    class="crm-input"
+                  >
+                    <option value="">Chọn nguồn khách</option>
+                    <option v-for="item in leadSources" :key="item.id" :value="item.id">
+                      {{ item.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="crm-label">Chi tiết nguồn</label>
+                  <input
+                    v-model="customerInfoForm.source_detail"
+                    class="crm-input"
+                    placeholder="Nhập chi tiết nguồn"
+                  />
+                </div>
+
+                <div class="md:col-span-2">
+                  <label class="crm-label">Campaign</label>
+                  <input
+                    v-model="customerInfoForm.campaign_name"
+                    class="crm-input"
+                    placeholder="Nhập campaign"
+                  />
+                </div>
               </div>
 
-              <div class="crm-info-row">
-                <span class="crm-info-label">Người liên hệ</span>
-                <span class="crm-info-value">{{ customer.contact_name || '-' }}</span>
+              <div
+                v-if="customerInfoError"
+                class="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+              >
+                {{ customerInfoError }}
               </div>
 
-              <div class="crm-info-row">
-                <span class="crm-info-label">Điện thoại</span>
-                <span class="crm-info-value">{{ customer.phone || '-' }}</span>
-              </div>
+              <div class="mt-4 flex justify-end gap-3">
+                <button
+                  class="crm-detail-btn crm-detail-btn-secondary"
+                  @click="cancelCustomerInfoEdit"
+                >
+                  Hủy
+                </button>
 
-              <div class="crm-info-row">
-                <span class="crm-info-label">Email</span>
-                <span class="crm-info-value">{{ customer.email || '-' }}</span>
+                <button
+                  class="crm-detail-btn crm-detail-btn-primary"
+                  :disabled="customerInfoLoading"
+                  @click="submitCustomerInfo"
+                >
+                  {{ customerInfoLoading ? 'Đang lưu...' : 'Lưu thông tin' }}
+                </button>
               </div>
-
-              <div class="crm-info-row">
-                <span class="crm-info-label">Nguồn khách</span>
-                <span class="crm-info-value">{{ customer.lead_source?.name || '-' }}</span>
-              </div>
-
-              <div class="crm-info-row">
-                <span class="crm-info-label">Chi tiết nguồn</span>
-                <span class="crm-info-value">{{ customer.source_detail || '-' }}</span>
-              </div>
-
-              <div class="crm-info-row">
-                <span class="crm-info-label">Campaign</span>
-                <span class="crm-info-value">{{ customer.campaign_name || '-' }}</span>
-              </div>
-
-              <div class="crm-info-row">
-                <span class="crm-info-label">Người tạo</span>
-                <span class="crm-info-value">{{ customer.creator?.name || '-' }}</span>
-              </div>
-
-              <div v-if="customer.priority_marker?.name" class="crm-info-row">
-                <span class="crm-info-label">Đánh dấu ưu tiên bởi</span>
-                <span class="crm-info-value">{{ customer.priority_marker?.name || '-' }}</span>
-              </div>
-            </div>
+            </template>
           </section>
 
           <!-- Assigned sales -->
@@ -754,6 +858,7 @@ import MainLayout from '../../layouts/MainLayout.vue'
 import AssignSalesModal from '../../components/customers/AssignSalesModal.vue'
 import EditDealModal from '../../components/customers/EditDealModal.vue'
 import EditLossModal from '../../components/customers/EditLossModal.vue'
+import { getLeadSourcesApi } from '../../api/leadSources'
 import {
   addActivityApi,
   addViewingApi,
@@ -783,6 +888,7 @@ const viewingError = ref('')
 const showEditDealModal = ref(false)
 const showEditLossModal = ref(false)
 
+
 const isClosedStatus = computed(() =>
   ['contracted', 'lost'].includes(customer.value?.status)
 )
@@ -810,6 +916,69 @@ const viewingForm = reactive({
   status: 'scheduled',
   note: '',
 })
+const showCustomerInfoEdit = ref(false)
+const customerInfoLoading = ref(false)
+const customerInfoError = ref('')
+
+const customerInfoForm = reactive({
+  company_name: '',
+  contact_name: '',
+  phone: '',
+  email: '',
+  lead_source_id: '',
+  source_detail: '',
+  campaign_name: '',
+})
+const fillCustomerInfoForm = () => {
+  customerInfoForm.company_name = customer.value.company_name || ''
+  customerInfoForm.contact_name = customer.value.contact_name || ''
+  customerInfoForm.phone = customer.value.phone || ''
+  customerInfoForm.email = customer.value.email || ''
+  customerInfoForm.lead_source_id = customer.value.lead_source_id || ''
+  customerInfoForm.source_detail = customer.value.source_detail || ''
+  customerInfoForm.campaign_name = customer.value.campaign_name || ''
+}
+const openCustomerInfoEdit = () => {
+  customerInfoError.value = ''
+  fillCustomerInfoForm()
+  showCustomerInfoEdit.value = true
+}
+
+const cancelCustomerInfoEdit = () => {
+  customerInfoError.value = ''
+  showCustomerInfoEdit.value = false
+}
+const submitCustomerInfo = async () => {
+  customerInfoError.value = ''
+  customerInfoLoading.value = true
+
+  try {
+    await updateCustomerApi(route.params.id, {
+      company_name: customerInfoForm.company_name || null,
+      contact_name: customerInfoForm.contact_name || null,
+      phone: customerInfoForm.phone || null,
+      email: customerInfoForm.email || null,
+      lead_source_id: customerInfoForm.lead_source_id || null,
+      source_detail: customerInfoForm.source_detail || null,
+      campaign_name: customerInfoForm.campaign_name || null,
+    })
+
+    showCustomerInfoEdit.value = false
+    await reloadCustomer()
+  } catch (error) {
+    customerInfoError.value =
+      error.response?.data?.message ||
+      Object.values(error.response?.data?.errors || {}).flat?.()[0] ||
+      'Không thể cập nhật thông tin khách hàng'
+  } finally {
+    customerInfoLoading.value = false
+  }
+}
+const leadSources = ref([])
+const loadLeadSources = async () => {
+  const { data } = await getLeadSourcesApi()
+  leadSources.value = data
+}
 
 const showRequirementEdit = ref(false)
 const requirementLoading = ref(false)
@@ -876,6 +1045,7 @@ const canEditRequirement = computed(() => {
   if (auth.user?.role === 'admin') return true
   return !isReadonlyForSale.value
 })
+const canEditCustomerInfo = computed(() => auth.user?.role === 'admin')
 
 const activityPage = ref(1)
 const activityPerPage = 5
@@ -1165,7 +1335,7 @@ const handleLossUpdated = async () => {
   await reloadCustomer()
 }
 onMounted(async () => {
-  await reloadCustomer()
+  await Promise.all([reloadCustomer(), loadLeadSources()])
 })
 const handleAdminChangeClosedStatus = async (targetStatus) => {
   statusActionError.value = ''
