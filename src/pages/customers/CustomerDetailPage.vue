@@ -864,6 +864,7 @@ import {
   addViewingApi,
   getCustomerDetailApi,
   togglePriorityApi,
+  updateCustomerApi,
   updateCustomerStatusApi,
   updateCustomerRequirementApi,
 } from '../../api/customers'
