@@ -13,6 +13,7 @@ import RevenueAnalyticsPage from '../pages/reports/RevenueAnalyticsPage.vue'
 import RevenueReportPage from '../pages/reports/RevenueReportPage.vue'
 import CustomerReportPage from '../pages/reports/CustomerReportPage.vue'
 
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -97,7 +98,7 @@ const router = createRouter({
       name: 'reports.customers',
       component: CustomerReportPage,
       meta: { requiresAuth: true },
-    }
+    },
   ],
 })
 

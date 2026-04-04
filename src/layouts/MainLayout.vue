@@ -150,7 +150,27 @@ const navigationItems =  computed(() => {
     },
     { label: 'Báo cáo doanh thu', 
       to: '/reports/revenue', 
-      icon: `...` 
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <!-- Document -->
+              <path d="M6 2H14L20 8V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V4C4 2.89543 4.89543 2 6 2Z" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M14 2V8H20" stroke="currentColor" stroke-width="1.8"/>
+              
+              <!-- Money -->
+              <path d="M12 10V16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M10 12C10 11 11 10 12 10C13 10 14 11 14 12C14 14 10 13 10 15C10 16 11 17 12 17C13 17 14 16 14 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>` 
+    },
+    {
+      label: 'Báo cáo khách hàng',
+      to: '/reports/customers',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <!-- Document -->
+              <path d="M14 2H20V8V20C20 21.1046 19.1046 22 18 22H14" stroke="currentColor" stroke-width="1.8"/>
+              
+              <!-- User -->
+              <circle cx="8" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M2 20C2 17.7909 4.68629 16 8 16C11.3137 16 14 17.7909 14 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>`,
     },
     
   ]
@@ -183,6 +203,7 @@ const currentPageTitle = computed(() => {
   if (route.path.startsWith('/customer-losses')) return 'Khách đã mất'
   if (route.path.startsWith('/analytics/revenue')) return 'Phân tích doanh thu'
   if (route.path.startsWith('/reports/revenue')) return 'Báo cáo doanh thu'
+  if (route.path.startsWith('/reports/customers')) return 'Báo cáo khách hàng'
   return 'Dashboard'
 })
 
