@@ -19,7 +19,6 @@ import {
   getCustomerReportWarningApi,
   getCustomerReportAgingApi,
   getCustomerReportTabDataApi,
-  getCustomerReportSummaryApi,
 } from '../../api/customer-report'
 
 const router = useRouter()
@@ -51,36 +50,38 @@ const tabs = [
 
 const summary = ref({
   current_assigned_customers: 0,
+  current_assigned_self_found: 0,
+  current_assigned_company_lead: 0,
+
   assigned_in_period: 0,
+  assigned_in_period_self_found: 0,
+  assigned_in_period_company_lead: 0,
+
   processing_customers: 0,
+  processing_self_found: 0,
+  processing_company_lead: 0,
+
   month_revenue: 0,
+  month_revenue_self_found: 0,
+  month_revenue_company_lead: 0,
+
+  month_won_customers: 0,
+  month_won_self_found: 0,
+  month_won_company_lead: 0,
+
+  month_lost_customers: 0,
+  month_lost_self_found: 0,
+  month_lost_company_lead: 0,
+
+  yellow_warnings: 0,
+  yellow_warnings_self_found: 0,
+  yellow_warnings_company_lead: 0,
+
+  red_warnings: 0,
+  red_warnings_self_found: 0,
+  red_warnings_company_lead: 0,
+
   team_month_revenue: null,
-  month_won_customers: 0,
-  month_lost_customers: 0,
-  yellow_warnings: 0,
-  red_warnings: 0,
-})
-
-const selfFoundSummary = ref({
-  current_assigned_customers: 0,
-  assigned_in_period: 0,
-  processing_customers: 0,
-  month_revenue: 0,
-  month_won_customers: 0,
-  month_lost_customers: 0,
-  yellow_warnings: 0,
-  red_warnings: 0,
-})
-
-const companyLeadSummary = ref({
-  current_assigned_customers: 0,
-  assigned_in_period: 0,
-  processing_customers: 0,
-  month_revenue: 0,
-  month_won_customers: 0,
-  month_lost_customers: 0,
-  yellow_warnings: 0,
-  red_warnings: 0,
 })
 
 const revenueDaily = ref([])
@@ -135,11 +136,11 @@ const assignedCurrentMax = computed(() =>
 )
 
 const assignedInPeriodMax = computed(() =>
-  Math.max(...assignedInPeriodRows.value.map((x) => Number(x.total_assigned || x.assigned_in_period || 0)), 0)
+  Math.max(...assignedInPeriodRows.value.map((x) => Number(x.assigned_in_period || 0)), 0)
 )
 
 const revenueSaleMax = computed(() =>
-  Math.max(...revenueBySale.value.map((x) => Number(x.revenue || x.total_revenue || 0)), 0)
+  Math.max(...revenueBySale.value.map((x) => Number(x.revenue || 0)), 0)
 )
 
 const conversionMax = computed(() =>
@@ -218,37 +219,52 @@ const splitKpis = computed(() => [
   {
     label: 'Khách phụ trách',
     total: summary.value.current_assigned_customers,
-    selfFound: selfFoundSummary.value.current_assigned_customers,
-    companyLead: companyLeadSummary.value.current_assigned_customers,
+    selfFound: summary.value.current_assigned_self_found,
+    companyLead: summary.value.current_assigned_company_lead,
     action: () => goCustomers(),
+    gradient: 'from-violet-600 to-indigo-600',
   },
   {
     label: 'Khách tạo mới',
     total: summary.value.assigned_in_period,
-    selfFound: selfFoundSummary.value.assigned_in_period,
-    companyLead: companyLeadSummary.value.assigned_in_period,
+    selfFound: summary.value.assigned_in_period_self_found,
+    companyLead: summary.value.assigned_in_period_company_lead,
     action: () => goCustomers({ assigned_in_period: 1 }),
+    gradient: 'from-cyan-500 to-sky-500',
   },
   {
     label: 'Đang xử lý',
     total: summary.value.processing_customers,
-    selfFound: selfFoundSummary.value.processing_customers,
-    companyLead: companyLeadSummary.value.processing_customers,
+    selfFound: summary.value.processing_self_found,
+    companyLead: summary.value.processing_company_lead,
     action: () => goCustomers({ open_only: 1 }),
+    gradient: 'from-sky-500 to-blue-600',
   },
   {
     label: 'Chốt trong kỳ',
     total: summary.value.month_won_customers,
-    selfFound: selfFoundSummary.value.month_won_customers,
-    companyLead: companyLeadSummary.value.month_won_customers,
+    selfFound: summary.value.month_won_self_found,
+    companyLead: summary.value.month_won_company_lead,
     action: () => goDeals(),
+    gradient: 'from-orange-400 to-orange-500',
+  },
+  {
+    label: 'Doanh thu trong kỳ',
+    total: formatCompactMoney(summary.value.month_revenue),
+    selfFound: formatCompactMoney(summary.value.month_revenue_self_found),
+    companyLead: formatCompactMoney(summary.value.month_revenue_company_lead),
+    action: () => goRevenueAnalytics(),
+    gradient: 'from-amber-400 to-yellow-500',
+  },
+  {
+    label: 'Khách hàng mất',
+    total: summary.value.month_lost_customers,
+    selfFound: summary.value.month_lost_self_found,
+    companyLead: summary.value.month_lost_company_lead,
+    action: () => goLosses(),
+    gradient: 'from-rose-500 to-red-500',
   },
 ])
-
-const formatMoney = (value) => {
-  const number = Number(value || 0)
-  return new Intl.NumberFormat('vi-VN').format(number)
-}
 
 const formatCompactMoney = (value) => {
   const number = Number(value || 0)
@@ -300,16 +316,6 @@ const goRevenueAnalytics = (extra = {}) => {
   })
 }
 
-const goCustomersByGroup = (group) => {
-  router.push({
-    path: '/customers',
-    query: {
-      ...baseParams.value,
-      customer_group: group,
-    },
-  })
-}
-
 const exportDashboard = () => {
   const headers = ['Tab', 'Company', 'Contact', 'Phone', 'Sale', 'Info']
   const rows = (tableData.value.data || []).map((row) => [
@@ -346,14 +352,6 @@ const fetchSaleOptions = async () => {
   }
 }
 
-const fetchSummaryByGroup = async (group) => {
-  const { data } = await getCustomerReportSummaryApi({
-    ...baseParams.value,
-    customer_group: group,
-  })
-  return data
-}
-
 const fetchTable = async () => {
   tableLoading.value = true
   try {
@@ -383,8 +381,6 @@ const fetchAll = async () => {
       agingRes,
       topSaleRes,
       myRankRes,
-      selfSummaryRes,
-      companySummaryRes,
     ] = await Promise.all([
       getDashboardSummaryApi(baseParams.value),
       getDashboardRevenueDailyApi(baseParams.value),
@@ -397,8 +393,6 @@ const fetchAll = async () => {
       getCustomerReportAgingApi(baseParams.value),
       getDashboardTopSaleApi(baseParams.value),
       getDashboardMyRankApi(baseParams.value),
-      fetchSummaryByGroup('self_found'),
-      fetchSummaryByGroup('company_lead'),
     ])
 
     summary.value = summaryRes.data
@@ -412,8 +406,6 @@ const fetchAll = async () => {
     aging.value = agingRes.data.data || []
     topSale.value = topSaleRes.data.data || null
     myRank.value = myRankRes.data.data || null
-    selfFoundSummary.value = selfSummaryRes
-    companyLeadSummary.value = companySummaryRes
 
     await fetchTable()
   } catch (error) {
@@ -483,57 +475,18 @@ onMounted(async () => {
       </section>
 
       <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-        <button class="rounded-[22px] bg-gradient-to-r from-violet-600 to-indigo-600 p-5 text-left text-white shadow-sm" @click="goCustomers()">
-          <div class="text-xs uppercase tracking-wide text-white/80">Khách hàng phụ trách</div>
-          <div class="mt-3 text-4xl font-semibold">{{ summary.current_assigned_customers }}</div>
+        <button
+          v-for="item in splitKpis"
+          :key="item.label"
+          class="rounded-[22px] bg-gradient-to-r p-5 text-left text-white shadow-sm"
+          :class="item.gradient"
+          @click="item.action"
+        >
+          <div class="text-xs uppercase tracking-wide text-white/80">{{ item.label }}</div>
+          <div class="mt-3 text-4xl font-semibold">{{ item.total }}</div>
           <div class="mt-3 flex items-center gap-4 text-xs text-white/85">
-            <span>Tự tìm: {{ selfFoundSummary.current_assigned_customers }}</span>
-            <span>Công ty: {{ companyLeadSummary.current_assigned_customers }}</span>
-          </div>
-        </button>
-
-        <button class="rounded-[22px] bg-gradient-to-r from-sky-500 to-blue-600 p-5 text-left text-white shadow-sm" @click="goCustomers({ open_only: 1 })">
-          <div class="text-xs uppercase tracking-wide text-white/80">Khách hàng tương tác</div>
-          <div class="mt-3 text-4xl font-semibold">{{ summary.processing_customers }}</div>
-          <div class="mt-3 flex items-center gap-4 text-xs text-white/85">
-            <span>Tự tìm: {{ selfFoundSummary.processing_customers }}</span>
-            <span>Công ty: {{ companyLeadSummary.processing_customers }}</span>
-          </div>
-        </button>
-
-        <button class="rounded-[22px] bg-gradient-to-r from-cyan-500 to-sky-500 p-5 text-left text-white shadow-sm" @click="goCustomers({ assigned_in_period: 1 })">
-          <div class="text-xs uppercase tracking-wide text-white/80">Khách hàng tạo mới</div>
-          <div class="mt-3 text-4xl font-semibold">{{ summary.assigned_in_period }}</div>
-          <div class="mt-3 flex items-center gap-4 text-xs text-white/85">
-            <span>Tự tìm: {{ selfFoundSummary.assigned_in_period }}</span>
-            <span>Công ty: {{ companyLeadSummary.assigned_in_period }}</span>
-          </div>
-        </button>
-
-        <button class="rounded-[22px] bg-gradient-to-r from-orange-400 to-orange-500 p-5 text-left text-white shadow-sm" @click="goDeals()">
-          <div class="text-xs uppercase tracking-wide text-white/80">KH mua trong kỳ</div>
-          <div class="mt-3 text-4xl font-semibold">{{ summary.month_won_customers }}</div>
-          <div class="mt-3 flex items-center gap-4 text-xs text-white/85">
-            <span>Tự tìm: {{ selfFoundSummary.month_won_customers }}</span>
-            <span>Công ty: {{ companyLeadSummary.month_won_customers }}</span>
-          </div>
-        </button>
-
-        <button class="rounded-[22px] bg-gradient-to-r from-amber-400 to-yellow-500 p-5 text-left text-white shadow-sm" @click="goRevenueAnalytics()">
-          <div class="text-xs uppercase tracking-wide text-white/80">Doanh thu trong kỳ</div>
-          <div class="mt-3 text-4xl font-semibold">{{ formatCompactMoney(summary.month_revenue) }}</div>
-          <div class="mt-3 flex items-center gap-4 text-xs text-white/85">
-            <span>Tự tìm: {{ formatCompactMoney(selfFoundSummary.month_revenue) }}</span>
-            <span>Công ty: {{ formatCompactMoney(companyLeadSummary.month_revenue) }}</span>
-          </div>
-        </button>
-
-        <button class="rounded-[22px] bg-gradient-to-r from-rose-500 to-red-500 p-5 text-left text-white shadow-sm" @click="goLosses()">
-          <div class="text-xs uppercase tracking-wide text-white/80">Khách hàng mất</div>
-          <div class="mt-3 text-4xl font-semibold">{{ summary.month_lost_customers }}</div>
-          <div class="mt-3 flex items-center gap-4 text-xs text-white/85">
-            <span>Tự tìm: {{ selfFoundSummary.month_lost_customers }}</span>
-            <span>Công ty: {{ companyLeadSummary.month_lost_customers }}</span>
+            <span>Tự tìm: {{ item.selfFound }}</span>
+            <span>Công ty: {{ item.companyLead }}</span>
           </div>
         </button>
       </section>
@@ -660,11 +613,11 @@ onMounted(async () => {
               <div class="grid grid-cols-2 gap-3 pt-2">
                 <button class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left hover:bg-slate-100" @click="goDeals({ customer_group: 'self_found' })">
                   <div class="text-xs text-slate-400">Deal tự tìm</div>
-                  <div class="mt-1 text-xl font-semibold text-slate-900">{{ selfFoundSummary.month_won_customers }}</div>
+                  <div class="mt-1 text-xl font-semibold text-slate-900">{{ summary.month_won_self_found }}</div>
                 </button>
                 <button class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left hover:bg-slate-100" @click="goDeals({ customer_group: 'company_lead' })">
                   <div class="text-xs text-slate-400">Deal công ty</div>
-                  <div class="mt-1 text-xl font-semibold text-slate-900">{{ companyLeadSummary.month_won_customers }}</div>
+                  <div class="mt-1 text-xl font-semibold text-slate-900">{{ summary.month_won_company_lead }}</div>
                 </button>
               </div>
             </div>
@@ -692,10 +645,10 @@ onMounted(async () => {
             >
               <div class="flex items-center justify-between text-sm">
                 <span class="font-medium text-slate-900">{{ item.user_name }}</span>
-                <span class="text-slate-500">{{ formatCompactMoney(item.revenue || item.total_revenue) }}</span>
+                <span class="text-slate-500">{{ formatCompactMoney(item.revenue) }}</span>
               </div>
               <div class="mt-2 h-2 rounded-full bg-slate-100">
-                <div class="h-full rounded-full bg-sky-500" :style="{ width: barWidth(item.revenue || item.total_revenue, revenueSaleMax) }"></div>
+                <div class="h-full rounded-full bg-sky-500" :style="{ width: barWidth(item.revenue, revenueSaleMax) }"></div>
               </div>
             </button>
           </div>
@@ -708,7 +661,7 @@ onMounted(async () => {
           </div>
 
           <div v-if="loading" class="space-y-3">
-            <div v-for="i in 5" :key="i" class="h-16 animate-pulse rounded-2xl bg-slate-100"></div>
+            <div v-for="i in 5" :key="i" class="h-20 animate-pulse rounded-2xl bg-slate-100"></div>
           </div>
 
           <div v-else class="space-y-3">
@@ -723,27 +676,38 @@ onMounted(async () => {
                 <span class="text-slate-500">{{ item.total_customers }} khách</span>
               </div>
 
-              <div class="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div class="mt-2 h-2 rounded-full bg-slate-100">
+                <div class="h-full rounded-full bg-indigo-500" :style="{ width: barWidth(item.total_customers, assignedCurrentMax) }"></div>
+              </div>
+
+              <div class="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100 flex">
                 <div
-                  class="h-full rounded-full bg-indigo-500"
-                  :style="{ width: barWidth(item.total_customers, assignedCurrentMax) }"
+                  class="h-full bg-violet-500"
+                  :style="{
+                    width: item.total_customers
+                      ? `${(Number(item.self_found_customers || 0) / Number(item.total_customers)) * 100}%`
+                      : '0%'
+                  }"
+                ></div>
+                <div
+                  class="h-full bg-cyan-500"
+                  :style="{
+                    width: item.total_customers
+                      ? `${(Number(item.company_lead_customers || 0) / Number(item.total_customers)) * 100}%`
+                      : '0%'
+                  }"
                 ></div>
               </div>
 
-              <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
-                <div class="rounded-xl bg-slate-50 px-3 py-3">
-                  <div class="text-slate-400 text-xs">Tự tìm</div>
-                  <div class="mt-1 font-semibold text-slate-900">
-                    {{ item.self_found_customers || 0 }} khách
-                  </div>
-                </div>
-
-                <div class="rounded-xl bg-slate-50 px-3 py-3">
-                  <div class="text-slate-400 text-xs">Công ty / MKT</div>
-                  <div class="mt-1 font-semibold text-slate-900">
-                    {{ item.company_lead_customers || 0 }} khách
-                  </div>
-                </div>
+              <div class="mt-2 flex items-center gap-4 text-xs text-slate-500">
+                <span class="flex items-center gap-1">
+                  <span class="h-2.5 w-2.5 rounded-full bg-violet-500"></span>
+                  Tự tìm: {{ item.self_found_customers || 0 }}
+                </span>
+                <span class="flex items-center gap-1">
+                  <span class="h-2.5 w-2.5 rounded-full bg-cyan-500"></span>
+                  Công ty / MKT: {{ item.company_lead_customers || 0 }}
+                </span>
               </div>
             </button>
           </div>
@@ -770,10 +734,10 @@ onMounted(async () => {
             >
               <div class="flex items-center justify-between text-sm">
                 <span class="font-medium text-slate-900">{{ item.user_name }}</span>
-                <span class="text-slate-500">{{ item.total_assigned || item.assigned_in_period }} khách</span>
+                <span class="text-slate-500">{{ item.assigned_in_period }} khách</span>
               </div>
               <div class="mt-2 h-2 rounded-full bg-slate-100">
-                <div class="h-full rounded-full bg-cyan-500" :style="{ width: barWidth(item.total_assigned || item.assigned_in_period, assignedInPeriodMax) }"></div>
+                <div class="h-full rounded-full bg-cyan-500" :style="{ width: barWidth(item.assigned_in_period, assignedInPeriodMax) }"></div>
               </div>
             </button>
           </div>
@@ -819,25 +783,25 @@ onMounted(async () => {
           </div>
 
           <div class="grid gap-4 md:grid-cols-2">
-            <button class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left hover:bg-slate-100" @click="goCustomersByGroup('self_found')">
+            <button class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left hover:bg-slate-100" @click="goCustomers({ customer_group: 'self_found' })">
               <div class="text-sm text-slate-500">Khách tự tìm</div>
-              <div class="mt-2 text-3xl font-semibold text-slate-900">{{ selfFoundSummary.current_assigned_customers }}</div>
+              <div class="mt-2 text-3xl font-semibold text-slate-900">{{ summary.current_assigned_self_found }}</div>
               <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-500">
-                <div>New: {{ selfFoundSummary.assigned_in_period }}</div>
-                <div>Won: {{ selfFoundSummary.month_won_customers }}</div>
-                <div>Lost: {{ selfFoundSummary.month_lost_customers }}</div>
-                <div>Warning: {{ Number(selfFoundSummary.yellow_warnings || 0) + Number(selfFoundSummary.red_warnings || 0) }}</div>
+                <div>New: {{ summary.assigned_in_period_self_found }}</div>
+                <div>Won: {{ summary.month_won_self_found }}</div>
+                <div>Lost: {{ summary.month_lost_self_found }}</div>
+                <div>Revenue: {{ formatCompactMoney(summary.month_revenue_self_found) }}</div>
               </div>
             </button>
 
-            <button class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left hover:bg-slate-100" @click="goCustomersByGroup('company_lead')">
+            <button class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left hover:bg-slate-100" @click="goCustomers({ customer_group: 'company_lead' })">
               <div class="text-sm text-slate-500">Khách công ty / MKT</div>
-              <div class="mt-2 text-3xl font-semibold text-slate-900">{{ companyLeadSummary.current_assigned_customers }}</div>
+              <div class="mt-2 text-3xl font-semibold text-slate-900">{{ summary.current_assigned_company_lead }}</div>
               <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-500">
-                <div>New: {{ companyLeadSummary.assigned_in_period }}</div>
-                <div>Won: {{ companyLeadSummary.month_won_customers }}</div>
-                <div>Lost: {{ companyLeadSummary.month_lost_customers }}</div>
-                <div>Warning: {{ Number(companyLeadSummary.yellow_warnings || 0) + Number(companyLeadSummary.red_warnings || 0) }}</div>
+                <div>New: {{ summary.assigned_in_period_company_lead }}</div>
+                <div>Won: {{ summary.month_won_company_lead }}</div>
+                <div>Lost: {{ summary.month_lost_company_lead }}</div>
+                <div>Revenue: {{ formatCompactMoney(summary.month_revenue_company_lead) }}</div>
               </div>
             </button>
           </div>
