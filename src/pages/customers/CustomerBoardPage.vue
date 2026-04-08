@@ -209,8 +209,8 @@
                     </div>
 
                     <div
-                      v-if="element.warning_level"
-                      class="mb-1 rounded-md px-2 py-1 text-[10px] font-semibold"
+                      v-if="element.warning_level && !isClosedStage(element.status)"
+                      class="mb-2 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold"
                       :class="warningBadgeClass(element.warning_level)"
                     >
                       {{ warningText(element) }}
@@ -233,9 +233,9 @@
 
                       <div
                         class="crm-line-note-mini"
-                        :class="element.warning_level
-                          ? noteWarningClass(element.warning_level)
-                          : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200/70'"
+                        :class="element.warning_level && !isClosedStage(element.status)
+                        ? noteWarningClass(element.warning_level)
+                        : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200/80'"
                         :title="element.latest_activity?.content || 'Chưa có ghi chú'"
                       >
                         {{ element.latest_activity?.content || 'Chưa có ghi chú' }}
@@ -410,6 +410,7 @@ const pendingSpecialMove = reactive({
 const lockedStages = ['contracted', 'lost']
 
 const isLockedStage = (status) => lockedStages.includes(status)
+const isClosedStage = (status) => ['contracted', 'lost'].includes(status)
 
 const stageOrder = ['new', 'consulting', 'viewing', 'negotiating', 'deposit', 'contracted', 'lost']
 
@@ -777,6 +778,10 @@ const formatBudget = (value) => {
 }
 
 const warningCardClass = (item) => {
+  if (isClosedStage(item.status)) {
+    return 'border-slate-200 bg-white hover:border-slate-300'
+  }
+
   if (item.warning_level === 'red') {
     return 'border-red-200 bg-red-50/75 ring-1 ring-red-100 hover:border-red-300'
   }

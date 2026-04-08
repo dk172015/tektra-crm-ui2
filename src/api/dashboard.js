@@ -39,3 +39,6 @@ export const getDashboardAssignedCurrentApi = (params) =>
 
 export const getDashboardAssignedInPeriodApi = (params) =>
   api.get('/dashboard/assigned-in-period', { params })
+
+export const getDashboardRankingSaleApi = (params) =>
+  api.get('/dashboard/ranking-sale', { params })
