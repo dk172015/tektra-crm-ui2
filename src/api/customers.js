@@ -11,6 +11,7 @@ export const addActivityApi = (id, payload) => api.post(`/customers/${id}/activi
 export const addViewingApi = (id, payload) => api.post(`/customers/${id}/viewings`, payload)
 export const togglePriorityApi = (id) => api.put(`/customers/${id}/toggle-priority`)
 
+
 export const closeDealApi = (id, payload) => api.post(`/customers/${id}/close-deal`, payload)
 export const getCustomerDealApi = (id) => api.get(`/customers/${id}/deal`)
 export const updateCustomerDealApi = (id, payload) => api.put(`/customers/${id}/deal`, payload)
@@ -28,3 +29,9 @@ export const createNewCustomerFromDealApi = (id) => api.post(`/customer-deals/${
 export const getCustomerLossesListApi = (params) => api.get('/customer-losses', { params })
 export const getCustomerLossDetailByLossIdApi = (id) => api.get(`/customer-losses/${id}`)
 export const createNewCustomerFromLossApi = (id) =>  api.post(`/customer-losses/${id}/create-new-customer`)
+export const addSupportSaleApi = (customerId, payload) =>
+  api.post(`/customers/${customerId}/add-support-sale`, payload)
+
+export const changePrimarySaleApi = (customerId, payload) =>
+  api.post(`/customers/${customerId}/change-primary-sale`, payload)
+

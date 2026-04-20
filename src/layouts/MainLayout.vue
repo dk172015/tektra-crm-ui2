@@ -172,6 +172,10 @@ const navigationItems =  computed(() => {
               <path d="M2 20C2 17.7909 4.68629 16 8 16C11.3137 16 14 17.7909 14 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             </svg>`,
     },
+    {
+      label: 'Tình trạng phân khách',
+      to: '/reports/assignment-status',
+    }
     
   ]
 

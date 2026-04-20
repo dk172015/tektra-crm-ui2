@@ -344,39 +344,32 @@
                 <p class="crm-panel-subtitle">Danh sách sale đang chăm sóc khách</p>
               </div>
             </div>
-
-            <div v-if="customer.assigned_users?.length" class="space-y-3">
-              <div
-                v-for="(user, index) in customer.assigned_users"
-                :key="user.id"
-                class="crm-user-card"
-              >
-                <div class="crm-user-left">
-                  <div class="crm-user-avatar">
-                    {{ getInitials(user.name) }}
-                  </div>
-                  <div class="min-w-0">
-                    <div class="truncate text-sm font-semibold text-slate-900">
-                      {{ user.name }}
-                    </div>
-                    <div class="truncate text-xs text-slate-500">
-                      {{ user.email }}
-                    </div>
-                  </div>
-                </div>
-
-                <span
-                  class="crm-pill"
-                  :class="index === 0 ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'"
-                >
-                  {{ index === 0 ? 'Sale chính' : 'Phối hợp' }}
-                </span>
+           <div class="mt-4 space-y-2">
+            <!-- Sale chính -->
+            <div>
+              <div class="text-xs text-slate-400">Sale chính</div>
+              <div class="mt-1 inline-flex rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
+                {{
+                  customer.assigned_users?.find(u => Number(u.pivot?.is_primary) === 1)?.name || '-'
+                }}
               </div>
             </div>
 
-            <div v-else class="crm-empty-box">
-              Chưa có sale phụ trách
+            <!-- Sale phụ -->
+            <div>
+              <div class="text-xs text-slate-400">Sale phối hợp</div>
+              <div class="mt-1 flex flex-wrap gap-2">
+                <span
+                  v-for="u in (customer.assigned_users || []).filter(u => Number(u.pivot?.is_primary) !== 1)"
+                  :key="u.id"
+                  class="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700"
+                >
+                  {{ u.name }}
+                </span>
+              </div>
             </div>
+          </div>
+                      
           </section>
 
           <!-- Requirement -->
@@ -867,11 +860,20 @@ import {
   updateCustomerApi,
   updateCustomerStatusApi,
   updateCustomerRequirementApi,
+  addSupportSaleApi, 
+  changePrimarySaleApi,
 } from '../../api/customers'
 import { useAuthStore } from '../../stores/auth'
 
 const route = useRoute()
 const auth = useAuthStore()
+
+
+const showAddSupportModal = ref(false)
+const showChangePrimaryModal = ref(false)
+
+const selectedSupportUserId = ref('')
+const selectedPrimaryUserId = ref('')
 
 const customer = ref({})
 const showAssignModal = ref(false)
@@ -1360,6 +1362,39 @@ const handleAdminChangeClosedStatus = async (targetStatus) => {
       'Không thể cập nhật trạng thái khách hàng'
   } finally {
     adminClosedActionLoading.value = false
+  }
+}
+const addSupportSale = async () => {
+  if (!selectedSupportUserId.value) return
+
+  try {
+    await addSupportSaleApi(customer.value.id, {
+      user_id: selectedSupportUserId.value,
+    })
+
+    showAddSupportModal.value = false
+    selectedSupportUserId.value = ''
+
+    await fetchCustomerDetail() // hàm load lại data đã có sẵn của bạn
+  } catch (err) {
+    alert(err?.response?.data?.message || 'Lỗi thêm sale phối hợp')
+  }
+}
+
+const changePrimarySale = async () => {
+  if (!selectedPrimaryUserId.value) return
+
+  try {
+    await changePrimarySaleApi(customer.value.id, {
+      primary_user_id: selectedPrimaryUserId.value,
+    })
+
+    showChangePrimaryModal.value = false
+    selectedPrimaryUserId.value = ''
+
+    await fetchCustomerDetail()
+  } catch (err) {
+    alert(err?.response?.data?.message || 'Lỗi đổi sale chính')
   }
 }
 </script>

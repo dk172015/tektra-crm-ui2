@@ -146,6 +146,41 @@
             placeholder="Nhập phí môi giới"
           />
         </div>
+        <div>
+          <label class="crm-label">Doanh số</label>
+          <input
+            v-model="form.sales_volume"
+            type="number"
+            min="0"
+            step="0.01"
+            class="crm-input"
+            placeholder="Nhập doanh số"
+          />
+        </div>
+        <div>
+          <label class="crm-label">Doanh thu Net</label>
+          <input
+            v-model="form.net_revenue"
+            type="number"
+            min="0"
+            step="0.01"
+            class="crm-input"
+            placeholder="Nhập doanh thu nét"
+          />
+
+        </div>
+        <div>
+          <label class="crm-label">Doanh thu Final</label>
+          <input
+            v-model="form.final_revenue"
+            type="number"
+            min="0"
+            step="0.01"
+            class="crm-input"
+            placeholder="DT NET - BACK FEE"
+          />
+          
+        </div>
         <div class="md:col-span-2">
         <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
             <input type="checkbox" v-model="form.has_vat" />
@@ -172,7 +207,6 @@
             class="crm-input"
         />
         </div>
-
         <div v-if="auth.isAdmin">
           <label class="crm-label">Sale chốt <span class="text-red-500">*</span></label>
           <select v-model="form.closer_user_id" class="crm-input">
@@ -262,8 +296,12 @@ const form = reactive({
   closer_user_id: '',
   note: '',
   has_vat: false,
-    vat_revenue: '',
-    back_fee: '',
+  vat_revenue: '',
+  back_fee: '',
+  sales_volume:'',
+  net_revenue:'',
+  final_revenue:''
+    
 })
 
 const resetForm = () => {
@@ -279,6 +317,10 @@ const resetForm = () => {
   form.brokerage_fee = ''
   form.closer_user_id = ''
   form.note = ''
+  form.sales_volume = ''
+  form.net_revenue=''
+  form.final_revenue=''
+
   errorMessage.value = ''
 }
 
@@ -342,8 +384,11 @@ const submit = async () => {
       closer_user_id: auth.isAdmin ? form.closer_user_id : null,
       note: form.note || null,
       has_vat: form.has_vat ? 1 : 0,
-    vat_revenue: form.has_vat ? (form.vat_revenue || null) : null,
-    back_fee: form.back_fee || null,
+      vat_revenue: form.has_vat ? (form.vat_revenue || null) : null,
+      back_fee: form.back_fee || null,
+      sales_volume: form.sales_volume || null,
+      net_revenue: form.net_revenue || null,
+      final_revenue:form.final_revenue||null
     })
 
     emit('saved')

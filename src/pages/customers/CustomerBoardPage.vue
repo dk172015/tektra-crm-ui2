@@ -249,8 +249,19 @@
                         class="crm-sale-chip"
                         :class="sale.is_primary ? 'primary' : ''"
                       >
-                        {{ sale.name }}
+                        <span
+                          :class="[
+                            'rounded-full px-2 py-1 text-xs',
+                            Number(sale.pivot?.is_primary) === 1
+                              ? 'bg-indigo-100 text-indigo-700 font-semibold'
+                              : 'bg-slate-100 text-slate-700'
+                          ]"
+                            >
+                              {{ sale.name }}
+                            </span>
                       </span>
+
+                      
                     </div>
                     <div class="mt-1.5 flex items-center justify-between border-t border-slate-200 pt-1.5">
                       <div class="truncate text-[10px] text-slate-400">

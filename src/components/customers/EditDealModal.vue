@@ -81,6 +81,18 @@
             <label class="crm-label">Phí môi giới</label>
             <input v-model="form.brokerage_fee" type="number" min="0" step="0.01" class="crm-input" />
           </div>
+          <div>
+            <label class="crm-label">Doanh số</label>
+            <input v-model="form.sales_volume" type="number" min="0" step="0.01" class="crm-input" />
+          </div>
+          <div>
+            <label class="crm-label">Doanh số NET</label>
+            <input v-model="form.net_revenue" type="number" min="0" step="0.01" class="crm-input" />
+          </div>
+          <div>
+            <label class="crm-label">Doanh số Final</label>
+            <input v-model="form.final_revenue" type="number" min="0" step="0.01" class="crm-input" />
+          </div>
           <div class="md:col-span-2">
           <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
               <input type="checkbox" v-model="form.has_vat" />
@@ -169,8 +181,11 @@ const form = reactive({
   closer_user_id: '',
   note: '',
   has_vat: false,
-vat_revenue: '',
-back_fee: '',
+  vat_revenue: '',
+  back_fee: '',
+  sales_volume:'',
+  final_revenue:'',
+  net_revenue:''
 })
 
 const normalizeDate = (value) => {
@@ -191,6 +206,9 @@ const resetForm = () => {
   form.brokerage_fee = ''
   form.closer_user_id = ''
   form.note = ''
+  form.sales_volume=''
+  form.net_revenue=''
+  form.final_revenue=''
   errorMessage.value = ''
 }
 
@@ -219,8 +237,11 @@ const loadData = async () => {
   form.closer_user_id = dealData.closer_user_id || ''
   form.note = dealData.note || ''
   form.has_vat = !!dealData.has_vat
-    form.vat_revenue = dealData.vat_revenue || ''
-    form.back_fee = dealData.back_fee || ''
+  form.vat_revenue = dealData.vat_revenue || ''
+  form.back_fee = dealData.back_fee || ''
+  form.sales_volume = dealData.sales_volume || ''
+  form.net_revenue = dealData.net_revenue || ''
+  form.final_revenue = dealData.final_revenue || ''
 }
 
 watch(
@@ -270,8 +291,11 @@ const submit = async () => {
       closer_user_id: form.closer_user_id,
       note: form.note || null,
       has_vat: form.has_vat ? 1 : 0,
-    vat_revenue: form.has_vat ? (form.vat_revenue || null) : null,
-    back_fee: form.back_fee || null,
+      vat_revenue: form.has_vat ? (form.vat_revenue || null) : null,
+      back_fee: form.back_fee || null,
+      sales_volume: form.sales_volume || null,
+      net_revenue: form.net_revenue || null,
+      final_revenue: form.final_revenue || null,
     })
 
     emit('saved')
