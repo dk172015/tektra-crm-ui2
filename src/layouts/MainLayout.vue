@@ -175,6 +175,28 @@ const navigationItems =  computed(() => {
     {
       label: 'Tình trạng phân khách',
       to: '/reports/assignment-status',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none">
+              <!-- User -->
+              <circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M2 19C2 17 4.5 15.5 8 15.5C11.5 15.5 14 17 14 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              
+              <!-- Arrows (assignment flow) -->
+              <path d="M13 10H21M21 10L18 7M21 10L18 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>`,
+    },
+    {
+      label: 'Chấm điểm hiệu suất',
+      to: '/reports/performance-score',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none">
+            <!-- Gauge -->
+            <path d="M4 14C4 9.58172 7.58172 6 12 6C16.4183 6 20 9.58172 20 14" stroke="currentColor" stroke-width="1.8"/>
+            
+            <!-- Needle -->
+            <path d="M12 14L17 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            
+            <!-- Base -->
+            <circle cx="12" cy="14" r="1.5" fill="currentColor"/>
+          </svg>`,
     }
     
   ]
@@ -208,6 +230,8 @@ const currentPageTitle = computed(() => {
   if (route.path.startsWith('/analytics/revenue')) return 'Phân tích doanh thu'
   if (route.path.startsWith('/reports/revenue')) return 'Báo cáo doanh thu'
   if (route.path.startsWith('/reports/customers')) return 'Báo cáo khách hàng'
+  if (route.path.startsWith('/reports/assignment-status')) return 'Tình trạng phân khách'
+  if (route.path.startsWith('reports/performance-score')) return 'Chấm điểm hiệu suất'
   return 'Dashboard'
 })
 

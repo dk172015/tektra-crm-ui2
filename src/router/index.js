@@ -13,6 +13,8 @@ import RevenueAnalyticsPage from '../pages/reports/RevenueAnalyticsPage.vue'
 import RevenueReportPage from '../pages/reports/RevenueReportPage.vue'
 import CustomerReportPage from '../pages/reports/CustomerReportPage.vue'
 import AssignmentStatusReportPage from '../pages/reports/AssignmentStatusReportPage.vue'
+import PerformanceScorePage from '../pages/reports/PerformanceScorePage.vue'
+
 
 const router = createRouter({
   history: createWebHistory(),
@@ -103,6 +105,12 @@ const router = createRouter({
       path: '/reports/assignment-status',
       name: 'reports.assignment-status',
       component: AssignmentStatusReportPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/reports/performance-score',
+      name: 'reports.performance-score',
+      component: PerformanceScorePage,
       meta: { requiresAuth: true },
     },
   ],
